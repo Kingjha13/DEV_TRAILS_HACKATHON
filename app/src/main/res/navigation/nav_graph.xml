@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/otpFragment">
+
+    <!-- OTP -->
+    <fragment
+        android:id="@+id/otpFragment"
+        android:name="com.example.shieldnet.onboarding.OtpFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_otp">
+
+        <action
+            android:id="@+id/action_otp_to_register"
+            app:destination="@id/registerFragment" />
+
+        <action
+            android:id="@+id/action_otp_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/otpFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- REGISTER -->
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.shieldnet.onboarding.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+
+        <action
+            android:id="@+id/action_register_to_risk_score"
+            app:destination="@id/riskScoreFragment" />
+    </fragment>
+
+    <!-- RISK -->
+    <fragment
+        android:id="@+id/riskScoreFragment"
+        android:name="com.example.shieldnet.risk.RiskScoreFragment"
+        android:label="Risk Score"
+        tools:layout="@layout/fragment_risk_score">
+
+        <action
+            android:id="@+id/action_risk_score_to_purchase"
+            app:destination="@id/policyPurchaseFragment" />
+
+        <argument
+            android:name="premium"
+            app:argType="integer"
+            android:defaultValue="0" />
+
+        <argument
+            android:name="coverage"
+            app:argType="integer"
+            android:defaultValue="0" />
+
+        <argument
+            android:name="tier"
+            app:argType="string"
+            android:defaultValue="medium" />
+    </fragment>
+
+    <!-- PURCHASE -->
+    <fragment
+        android:id="@+id/policyPurchaseFragment"
+        android:name="com.example.shieldnet.purchase.PolicyPurchaseFragment"
+        android:label="Buy Policy"
+        tools:layout="@layout/fragment_policy_purchase">
+
+        <argument android:name="premium" app:argType="integer"/>
+        <argument android:name="coverage" app:argType="integer"/>
+        <argument android:name="tier" app:argType="string"/>
+
+        <action
+            android:id="@+id/action_purchase_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/otpFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- DASHBOARD -->
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.example.shieldnet.dashboard.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard">
+
+        <action
+            android:id="@+id/action_dashboard_to_risk_score"
+            app:destination="@id/riskScoreFragment" />
+    </fragment>
+
+</navigation>

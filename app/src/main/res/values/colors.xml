@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand -->
+    <color name="shieldnet_teal">#0F6E56</color>
+    <color name="shieldnet_teal_light">#1A9B78</color>
+
+    <!-- Backgrounds -->
+    <color name="bg_dark">#0D1117</color>
+    <color name="card_bg">#161B22</color>
+
+    <!-- Text -->
+    <color name="text_primary">#E6EDF3</color>
+    <color name="text_secondary">#8B949E</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Trigger status -->
+    <color name="trigger_safe">#1A4731</color>
+    <color name="trigger_alert">#7D1A1A</color>
+
+    <!-- Claim status -->
+    <color name="status_paid">#3FB950</color>
+    <color name="status_approved">#58A6FF</color>
+    <color name="status_pending">#D29922</color>
+    <color name="status_rejected">#F85149</color>
+
+    <!-- Risk badges -->
+    <color name="badge_green">#1A4731</color>
+    <color name="badge_amber">#3D2D00</color>
+    <color name="badge_red">#4A1A1A</color>
+</resources>
