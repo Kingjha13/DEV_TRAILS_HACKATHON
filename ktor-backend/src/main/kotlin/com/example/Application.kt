@@ -47,7 +47,6 @@ fun Application.module() {
             try {
 
                 val request = call.receive<FraudRequest>()
-
                 println("🔥 Incoming request: $request")
 
                 val jsonBody = """
@@ -60,16 +59,22 @@ fun Application.module() {
         }
         """.trimIndent()
 
-                val response: FraudResponse = client.post(fraudUrl) {
+                val response: HttpResponse = client.post(fraudUrl) {
                     contentType(ContentType.Application.Json)
-                    setBody(jsonBody)
-                }.body()
+                    setBody(jsonBody)   // ✅ FINAL FIX
+                }
 
-                call.respond(response)
+                val responseText = response.bodyAsText()
+                println("🔥 RUST RESPONSE: $responseText")
+
+                call.respondText(
+                    text = responseText,
+                    contentType = ContentType.Application.Json
+                )
 
             } catch (e: Exception) {
 
-                println("❌ ERROR: ${e.message}")
+                e.printStackTrace()
 
                 call.respond(
                     HttpStatusCode.InternalServerError,
