@@ -18,7 +18,7 @@ import io.ktor.http.*
 
 fun main() {
 
-    val port = System.getenv("PORT")?.toInt() ?: 8081
+    val port = System.getenv("PORT")?.toInt() ?: 8080
 
     embeddedServer(Netty, port = port, host = "0.0.0.0") {
         module()
@@ -31,12 +31,10 @@ fun Application.module() {
         json()
     }
 
-    // ✅ HTTP CLIENT
     val client = HttpClient(CIO)
 
-    // ✅ FRAUD SERVICE URL
     val fraudUrl = System.getenv("FRAUD_URL")
-        ?: "http://localhost:8080/score"
+        ?: "https://shieldnet-fraud.onrender.com/score"
 
     routing {
 
@@ -44,28 +42,47 @@ fun Application.module() {
             call.respond(mapOf("message" to "Ktor backend running 🚀"))
         }
 
-        post("/check-fraud") {
+        post("/api/risk/score") {
 
-            val request = call.receive<FraudRequest>()
+            try {
 
-            val response: FraudResponse = client.post(fraudUrl) {
-                contentType(ContentType.Application.Json)
-                setBody(request)
-            }.body()
+                val request = call.receive<FraudRequest>()
 
-            // 🔥 SAVE TO MONGODB
-            MongoService.saveClaim(request, response)
+                val response: HttpResponse = client.post(fraudUrl) {
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }
 
-            call.respond(response)
+                val responseBody = response.bodyAsText()
+
+                call.respondText(
+                    text = responseBody,
+                    contentType = ContentType.Application.Json
+                )
+
+            } catch (e: Exception) {
+
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to (e.message ?: "unknown error"))
+                )
+            }
         }
 
         post("/register") {
 
-            val user = call.receive<User>()
+            try {
+                val user = call.receive<User>()
+                Database.users.insertOne(user)
 
-            Database.users.insertOne(user)
+                call.respond(mapOf("status" to "saved"))
 
-            call.respond(mapOf("status" to "saved"))
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to e.message)
+                )
+            }
         }
     }
 }
