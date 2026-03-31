@@ -1,10 +1,11 @@
 FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
+
 COPY . .
+
 RUN chmod +x gradlew
-RUN ./gradlew build --no-daemon
 
-EXPOSE 8080
+RUN ./gradlew build
 
-CMD ["sh", "-c", "java -jar build/libs/*-all.jar"]
+CMD ["./gradlew", "run"]
