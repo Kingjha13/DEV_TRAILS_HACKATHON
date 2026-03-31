@@ -8,7 +8,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
-
+import kotlinx.serialization.Serializable
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -50,14 +50,26 @@ fun Application.module() {
 
                 println("🔥 Incoming request: $request")
 
+                val jsonBody = """
+        {
+          "worker_id": "${request.worker_id}",
+          "city": "${request.city}",
+          "event_type": "${request.event_type}",
+          "policy_age_hours": ${request.policy_age_hours},
+          "severity": ${request.severity}
+        }
+        """.trimIndent()
+
                 val response: FraudResponse = client.post(fraudUrl) {
                     contentType(ContentType.Application.Json)
-                    setBody(request)
+                    setBody(jsonBody)
                 }.body()
 
                 call.respond(response)
 
             } catch (e: Exception) {
+
+                println("❌ ERROR: ${e.message}")
 
                 call.respond(
                     HttpStatusCode.InternalServerError,
