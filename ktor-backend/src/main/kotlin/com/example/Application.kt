@@ -9,6 +9,13 @@ import io.ktor.server.response.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.call.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+
 fun main() {
 
     val port = System.getenv("PORT")?.toInt() ?: 8081
@@ -24,6 +31,13 @@ fun Application.module() {
         json()
     }
 
+    // ✅ HTTP CLIENT
+    val client = HttpClient(CIO)
+
+    // ✅ FRAUD SERVICE URL
+    val fraudUrl = System.getenv("FRAUD_URL")
+        ?: "http://localhost:8080/score"
+
     routing {
 
         get("/") {
@@ -34,18 +48,13 @@ fun Application.module() {
 
             val request = call.receive<FraudRequest>()
 
-            val fraudClient = FraudClient()
-            val response = fraudClient.checkFraud(request)
+            val response: FraudResponse = client.post(fraudUrl) {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body()
 
-            Database.fraudLogs.insertOne(
-                FraudLog(
-                    id = java.util.UUID.randomUUID().toString(),
-                    userId = request.worker_id,
-                    fraudScore = response.fraud_score,
-                    decision = response.decision,
-                    flags = response.flags
-                )
-            )
+            // 🔥 SAVE TO MONGODB
+            MongoService.saveClaim(request, response)
 
             call.respond(response)
         }
