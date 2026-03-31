@@ -48,17 +48,14 @@ fun Application.module() {
 
                 val request = call.receive<FraudRequest>()
 
-                val response: HttpResponse = client.post(fraudUrl) {
+                println("🔥 Incoming request: $request")
+
+                val response: FraudResponse = client.post(fraudUrl) {
                     contentType(ContentType.Application.Json)
                     setBody(request)
-                }
+                }.body()
 
-                val responseBody = response.bodyAsText()
-
-                call.respondText(
-                    text = responseBody,
-                    contentType = ContentType.Application.Json
-                )
+                call.respond(response)
 
             } catch (e: Exception) {
 
