@@ -1,59 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark"
-    android:fillViewport="true">
+    android:background="#0A0E1A">
+
+    <View
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="-100dp"
+        android:background="@drawable/bg_glow_teal"
+        android:alpha="0.25"/>
 
     <LinearLayout
+        android:id="@+id/progress_loading"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:gravity="center"
+        android:visibility="visible">
 
         <ProgressBar
-            android:id="@+id/progress_loading"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:indeterminateTint="#00E5CC"
+            android:layout_marginBottom="20dp"/>
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="visible"
-            android:layout_marginTop="80dp"/>
+            android:text="Analysing your risk profile..."
+            android:textSize="16sp"
+            android:textColor="#F0F4FF"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Checking weather, AQI &amp; traffic data"
+            android:textSize="13sp"
+            android:textColor="#8892A4"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/content_group"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:scrollbars="none">
 
         <LinearLayout
-            android:id="@+id/content_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:padding="24dp"
+            android:paddingTop="48dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Your Risk Score"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="20dp"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="28dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Your Risk Profile"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textColor="#F0F4FF"
+                        android:fontFamily="sans-serif-medium"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Based on your city &amp; work pattern"
+                        android:textSize="13sp"
+                        android:textColor="#8892A4"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+            </LinearLayout>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/card_bg"
-                app:cardCornerRadius="16dp"
+                app:cardBackgroundColor="#141929"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp"
+                    android:padding="24dp"
                     android:gravity="center">
 
                     <FrameLayout
                         android:layout_width="160dp"
                         android:layout_height="160dp"
-                        android:layout_gravity="center">
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="16dp">
 
                         <ProgressBar
                             android:id="@+id/progress_risk"
@@ -65,102 +118,189 @@
                             android:progressDrawable="@drawable/circular_progress"
                             android:rotation="-90"/>
 
-                        <TextView
-                            android:id="@+id/tv_score_number"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="--"
-                            android:textSize="36sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_gravity="center"/>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:id="@+id/tv_score_number"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textSize="42sp"
+                                android:textStyle="bold"
+                                android:textColor="#F0F4FF"
+                                android:fontFamily="sans-serif-medium"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="/100"
+                                android:textSize="13sp"
+                                android:textColor="#8892A4"/>
+                        </LinearLayout>
                     </FrameLayout>
 
-                    <TextView
-                        android:id="@+id/tv_risk_level"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="MEDIUM"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/white"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="6dp"
-                        android:layout_marginTop="12dp"/>
+                        app:cardBackgroundColor="#00E5CC"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp">
+                        <TextView
+                            android:id="@+id/tv_risk_level"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="MEDIUM RISK"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#0A0E1A"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="6dp"/>
+                    </androidx.cardview.widget.CardView>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:cardBackgroundColor="#141929"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginEnd="8dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="WEEKLY PREMIUM"
+                            android:textSize="10sp"
+                            android:textColor="#8892A4"
+                            android:letterSpacing="0.1"
+                            android:layout_marginBottom="6dp"/>
+                        <TextView
+                            android:id="@+id/tv_premium"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹--"
+                            android:textSize="26sp"
+                            android:textStyle="bold"
+                            android:textColor="#00E5CC"
+                            android:fontFamily="sans-serif-medium"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="per week"
+                            android:textSize="12sp"
+                            android:textColor="#8892A4"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:cardBackgroundColor="#141929"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginStart="8dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="MAX COVERAGE"
+                            android:textSize="10sp"
+                            android:textColor="#8892A4"
+                            android:letterSpacing="0.1"
+                            android:layout_marginBottom="6dp"/>
+                        <TextView
+                            android:id="@+id/tv_coverage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹--"
+                            android:textSize="26sp"
+                            android:textStyle="bold"
+                            android:textColor="#F0F4FF"
+                            android:fontFamily="sans-serif-medium"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="covered"
+                            android:textSize="12sp"
+                            android:textColor="#8892A4"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/card_bg"
+                app:cardBackgroundColor="#141929"
                 app:cardCornerRadius="16dp"
-                android:layout_marginBottom="16dp">
-
+                app:cardElevation="0dp"
+                android:layout_marginBottom="24dp">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="20dp">
-
-                    <TextView
-                        android:id="@+id/tv_premium"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="₹-- / week"
-                        android:textSize="28sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/shieldnet_teal"/>
-
-                    <TextView
-                        android:id="@+id/tv_coverage"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Coverage up to ₹--"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp"/>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/card_bg"
-                app:cardCornerRadius="16dp"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Risk Breakdown"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:layout_marginBottom="8dp"/>
-
+                        android:textColor="#F0F4FF"
+                        android:layout_marginBottom="4dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Factors affecting your premium"
+                        android:textSize="12sp"
+                        android:textColor="#8892A4"
+                        android:layout_marginBottom="16dp"/>
                     <com.github.mikephil.charting.charts.RadarChart
                         android:id="@+id/radar_chart"
                         android:layout_width="match_parent"
-                        android:layout_height="240dp"/>
+                        android:layout_height="220dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_buy_policy"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="Buy Protection →"
-                android:textSize="16sp"
-                app:backgroundTint="@color/shieldnet_teal"/>
+                android:layout_height="60dp"
+                android:text="Get Protected Now →"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="#0A0E1A"
+                app:backgroundTint="#00E5CC"
+                app:cornerRadius="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Instant activation · Auto-claim on weather events"
+                android:textSize="12sp"
+                android:textColor="#8892A4"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"/>
 
         </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</FrameLayout>

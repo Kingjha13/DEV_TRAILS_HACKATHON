@@ -66,7 +66,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttp: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl("https://ktor-backend-bupj.onrender.com/")
+            .baseUrl("https://ktor-backend-eda7.onrender.com/")
             .client(okHttp)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

@@ -1,119 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark"
-    android:fillViewport="true">
+    android:background="#0A0E1A">
 
-    <LinearLayout
+    <View
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="-60dp"
+        android:layout_marginStart="-60dp"
+        android:background="@drawable/bg_glow_teal"
+        android:alpha="0.2"/>
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="28dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tell us about yourself"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="We use this to calculate your risk and premium"
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="28dp"/>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Full Name"
-            app:boxStrokeColor="@color/shieldnet_teal"
-            android:layout_marginBottom="16dp">
-            <com.google.android.material.textfield.TextInputEditText
+            android:orientation="vertical"
+            android:padding="28dp"
+            android:paddingTop="48dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="32dp">
+
+                <View android:layout_width="32dp" android:layout_height="4dp"
+                    android:background="#00E5CC" android:layout_marginEnd="6dp"/>
+                <View android:layout_width="32dp" android:layout_height="4dp"
+                    android:background="#00E5CC" android:layout_marginEnd="6dp"/>
+                <View android:layout_width="32dp" android:layout_height="4dp"
+                    android:background="#1E2A3A" android:layout_marginEnd="6dp"/>
+                <View android:layout_width="32dp" android:layout_height="4dp"
+                    android:background="#1E2A3A"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Step 2 of 4"
+                    android:textSize="12sp"
+                    android:textColor="#8892A4"
+                    android:gravity="end"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tell us about yourself"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#F0F4FF"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="6dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="We calculate your risk score and premium from this"
+                android:textSize="14sp"
+                android:textColor="#8892A4"
+                android:layout_marginBottom="32dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FULL NAME"
+                android:textSize="11sp"
+                android:textColor="#00E5CC"
+                android:letterSpacing="0.12"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
                 android:id="@+id/et_name"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:inputType="textPersonName"
-                android:textColor="@color/text_primary"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:textColor="#F0F4FF"
+                android:textSize="16sp"
+                android:background="@drawable/bg_input_field"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:hint="Ravi Kumar"
+                android:textColorHint="#3D4A5C"
+                android:layout_marginBottom="20dp"/>
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Delivery Platform" android:textColor="@color/text_secondary"
-            android:textSize="12sp" android:layout_marginBottom="4dp"/>
-        <Spinner
-            android:id="@+id/spinner_platform"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_spinner"
-            android:paddingStart="12dp"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Your City" android:textColor="@color/text_secondary"
-            android:textSize="12sp" android:layout_marginBottom="4dp"/>
-        <Spinner
-            android:id="@+id/spinner_city"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_spinner"
-            android:paddingStart="12dp"
-            android:layout_marginBottom="16dp"/>
-
-        <!-- Weekly Earnings -->
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Average Weekly Earnings (₹)"
-            app:boxStrokeColor="@color/shieldnet_teal"
-            android:layout_marginBottom="16dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_weekly_earnings"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:textColor="@color/text_primary"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:text="DELIVERY PLATFORM"
+                android:textSize="11sp"
+                android:textColor="#00E5CC"
+                android:letterSpacing="0.12"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
 
-        <!-- UPI Handle -->
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="UPI Handle (for payouts)"
-            app:helperText="e.g. yourname@upi"
-            app:boxStrokeColor="@color/shieldnet_teal"
-            android:layout_marginBottom="28dp">
-            <com.google.android.material.textfield.TextInputEditText
+            <Spinner
+                android:id="@+id/spinner_platform"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_spinner"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginBottom="20dp"
+                android:popupBackground="#141929"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="YOUR CITY"
+                android:textSize="11sp"
+                android:textColor="#00E5CC"
+                android:letterSpacing="0.12"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/spinner_city"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_spinner"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginBottom="20dp"
+                android:popupBackground="#141929"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AVG WEEKLY EARNINGS (₹)"
+                android:textSize="11sp"
+                android:textColor="#00E5CC"
+                android:letterSpacing="0.12"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_input_field"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="20dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₹"
+                    android:textSize="20sp"
+                    android:textColor="#00E5CC"
+                    android:textStyle="bold"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="8dp"/>
+                <EditText
+                    android:id="@+id/et_weekly_earnings"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:inputType="numberDecimal"
+                    android:textColor="#F0F4FF"
+                    android:textSize="18sp"
+                    android:background="@null"
+                    android:paddingEnd="16dp"
+                    android:hint="5000"
+                    android:textColorHint="#3D4A5C"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UPI HANDLE"
+                android:textSize="11sp"
+                android:textColor="#00E5CC"
+                android:letterSpacing="0.12"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
                 android:id="@+id/et_upi"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:inputType="text"
-                android:textColor="@color/text_primary"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:textColor="#F0F4FF"
+                android:textSize="16sp"
+                android:background="@drawable/bg_input_field"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:hint="yourname@upi"
+                android:textColorHint="#3D4A5C"
+                android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_register"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Calculate My Risk Score →"
-            android:textSize="16sp"
-            app:backgroundTint="@color/shieldnet_teal"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Payouts will be credited to this UPI address"
+                android:textSize="12sp"
+                android:textColor="#8892A4"
+                android:layout_marginBottom="32dp"/>
 
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="12dp"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_register"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Calculate My Risk Score →"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#0A0E1A"
+                app:backgroundTint="#00E5CC"
+                app:cornerRadius="14dp"/>
 
-    </LinearLayout>
-</ScrollView>
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:indeterminateTint="#00E5CC"/>
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

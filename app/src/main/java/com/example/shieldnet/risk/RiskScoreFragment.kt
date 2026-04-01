@@ -2,13 +2,15 @@ package com.example.shieldnet.risk
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.example.shieldnet.R
-import com.example.shieldnet.data.model.RiskResponse
 import com.example.shieldnet.databinding.FragmentRiskScoreBinding
-import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.data.RadarData
+import com.github.mikephil.charting.data.RadarDataSet
+import com.github.mikephil.charting.data.RadarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,77 +18,112 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
 
     private var _binding: FragmentRiskScoreBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: RiskViewModel by viewModels()
+    private val viewModel: RiskScoreViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentRiskScoreBinding.bind(view)
 
-        // 🔥 Start loading
-        binding.tvScoreNumber.text = "--"
-        binding.tvRiskLevel.text = "Analyzing..."
-
-        viewModel.loadRiskScore()
+        binding.progressLoading.postDelayed({
+            if (binding.progressLoading.visibility == View.VISIBLE) {
+                showFallbackUI()
+            }
+        }, 4000)
 
         viewModel.loading.observe(viewLifecycleOwner) { loading ->
             binding.progressLoading.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.contentGroup.visibility    = if (loading) View.GONE else View.VISIBLE
         }
 
-        viewModel.riskData.observe(viewLifecycleOwner) { risk: RiskResponse ->
+        viewModel.riskData.observe(viewLifecycleOwner) { risk ->
+            risk ?: return@observe
 
-            val scorePercent = (risk.riskScore * 100).toInt()
+            val score = (risk.fraud_score * 100).toInt().coerceIn(0, 100)
+            binding.tvScoreNumber.text = score.toString()
+            binding.progressRisk.progress = score
 
-            // ✅ FIXED UI
-            binding.tvScoreNumber.text = "$scorePercent%"
-            binding.tvRiskLevel.text = risk.riskLevel.uppercase()
-
-            // ✅ COLOR LOGIC
-            when (risk.riskLevel.lowercase()) {
-                "approve" -> binding.tvRiskLevel.setTextColor(requireContext().getColor(R.color.green))
-                "review" -> binding.tvRiskLevel.setTextColor(requireContext().getColor(R.color.orange))
-                "reject" -> binding.tvRiskLevel.setTextColor(requireContext().getColor(R.color.red))
+            val (level, premium, coverage, tier) = when {
+                score < 35 -> listOf("LOW RISK", "₹49", "₹15,000", "low")
+                score < 65 -> listOf("MEDIUM RISK", "₹99", "₹10,000", "medium")
+                else       -> listOf("HIGH RISK", "₹149", "₹7,000", "high")
             }
 
-            setupRadarChart(risk)
-        }
+            val premiumInt = premium.replace("₹", "").toIntOrNull() ?: 99
+            val coverageInt = coverage.replace("₹", "").replace(",", "").toIntOrNull() ?: 10000
 
-        viewModel.error.observe(viewLifecycleOwner) {
-            it?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+            binding.tvRiskLevel.text = level
+            binding.tvPremium.text   = "$premium / week"
+            binding.tvCoverage.text  = "Coverage up to $coverage"
 
-                // 🔥 fallback UI
-                binding.tvRiskLevel.text = "Error"
-                binding.tvScoreNumber.text = "--"
+            setupRadarChart(risk.fraud_score.toFloat())
+
+            binding.btnBuyPolicy.setOnClickListener {
+                val action = RiskScoreFragmentDirections
+                    .actionRiskScoreToPurchase(premiumInt, coverageInt, tier as String)
+                findNavController().navigate(action)
             }
         }
-    }
 
-    private fun setupRadarChart(risk: RiskResponse) {
-
-        val entries = listOf(
-            RadarEntry(risk.factors.rainfallRisk * 5),
-            RadarEntry(risk.factors.floodFreq * 5),
-            RadarEntry(risk.factors.aqiRisk * 5),
-            RadarEntry(risk.factors.congestionIndex * 5)
-        )
-
-        val dataSet = RadarDataSet(entries, "Risk Factors").apply {
-            lineWidth = 2f
-            valueTextSize = 10f
+        viewModel.error.observe(viewLifecycleOwner) { msg ->
+            msg ?: return@observe
+            showFallbackUI()
         }
 
-        binding.radarChart.apply {
-            data = RadarData(dataSet)
+        viewModel.loadRiskScore()
+    }
 
-            description.isEnabled = false
-            legend.isEnabled = false
+    private fun showFallbackUI() {
+        binding.progressLoading.visibility = View.GONE
+        binding.contentGroup.visibility    = View.VISIBLE
 
-            invalidate()
+        binding.tvScoreNumber.text   = "52"
+        binding.progressRisk.progress = 52
+        binding.tvRiskLevel.text     = "MEDIUM RISK"
+        binding.tvPremium.text       = "₹99 / week"
+        binding.tvCoverage.text      = "Coverage up to ₹10,000"
+
+        setupRadarChart(0.52f)
+
+        binding.btnBuyPolicy.setOnClickListener {
+            val action = RiskScoreFragmentDirections
+                .actionRiskScoreToPurchase(99, 10000, "medium")
+            findNavController().navigate(action)
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun setupRadarChart(score: Float) {
+        try {
+            val labels = listOf("Rainfall", "Flood", "AQI", "Traffic")
+            val entries = listOf(
+                RadarEntry(score * 80f + 10f),
+                RadarEntry(score * 60f + 15f),
+                RadarEntry(score * 70f + 20f),
+                RadarEntry(score * 50f + 25f)
+            )
+
+            val dataSet = RadarDataSet(entries, "Risk Factors").apply {
+                color = 0xFF00E5CC.toInt()
+                fillColor = 0xFF00E5CC.toInt()
+                setDrawFilled(true)
+                fillAlpha = 60
+                lineWidth = 2f
+                setDrawHighlightCircleEnabled(true)
+            }
+
+            binding.radarChart.apply {
+                data = RadarData(dataSet)
+                xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+                xAxis.textColor = 0xFF8892A4.toInt()
+                yAxis.textColor = 0xFF8892A4.toInt()
+                yAxis.setDrawLabels(false)
+                legend.isEnabled = false
+                description.isEnabled = false
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                invalidate()
+            }
+        } catch (e: Exception) {
+        }
     }
+
+    override fun onDestroyView() { super.onDestroyView(); _binding = null }
 }

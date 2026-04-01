@@ -3,6 +3,7 @@ package com.example.shieldnet.dashboard
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -28,19 +29,31 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
         viewModel.loadDashboard()
 
+        binding.progressBar.postDelayed({
+            if (binding.progressBar.visibility == View.VISIBLE) {
+                binding.progressBar.visibility = View.GONE
+                binding.scrollContent.visibility = View.VISIBLE
+            }
+        }, 3000)
+
         viewModel.loading.observe(viewLifecycleOwner) { loading ->
-            binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
-            binding.scrollContent.visibility = if (loading) View.GONE else View.VISIBLE
+            if (loading) {
+                binding.progressBar.visibility = View.VISIBLE
+                binding.scrollContent.visibility = View.GONE
+            } else {
+                binding.progressBar.visibility = View.GONE
+                binding.scrollContent.visibility = View.VISIBLE
+            }
         }
 
         viewModel.activePolicy.observe(viewLifecycleOwner) { policy ->
             if (policy != null) {
-                binding.cardPolicy.visibility  = View.VISIBLE
+                binding.cardPolicy.visibility      = View.VISIBLE
                 binding.cardNoPolicyCta.visibility = View.GONE
-                binding.tvPolicyTier.text      = policy.planTier.uppercase() + " PLAN"
-                binding.tvPolicyCoverage.text  = "Covered up to ₹${policy.coverageInr}"
-                binding.tvPolicyExpiry.text    = "Valid until ${formatDate(policy.expiresAt)}"
-                binding.chipPolicyStatus.text  = policy.status.uppercase()
+                binding.tvPolicyTier.text          = policy.planTier.uppercase() + " PLAN"
+                binding.tvPolicyCoverage.text      = "Covered up to ₹${policy.coverageInr}"
+                binding.tvPolicyExpiry.text        = "Valid until ${formatDate(policy.expiresAt)}"
+                binding.chipPolicyStatus.text      = policy.status.uppercase()
                 val chipColor = if (policy.status == "active") R.color.status_paid else R.color.status_pending
                 binding.chipPolicyStatus.setChipBackgroundColorResource(chipColor)
             } else {
@@ -78,17 +91,16 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
         }
 
         binding.btnArNav.setOnClickListener {
-            startActivity(Intent(requireContext(), ArNavigationActivity::class.java))
+            Toast.makeText(requireContext(), "AR Nav — Coming soon!", Toast.LENGTH_SHORT).show()
         }
 
         binding.btnBuyPolicyCta.setOnClickListener {
-            binding.progressBar.visibility = View.VISIBLE
             findNavController().navigate(R.id.action_dashboard_to_risk_score)
         }
 
         viewModel.error.observe(viewLifecycleOwner) { msg ->
             msg ?: return@observe
-            android.widget.Toast.makeText(requireContext(), msg, android.widget.Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
         }
     }
 

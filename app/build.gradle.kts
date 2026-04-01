@@ -18,7 +18,7 @@ android {
         buildConfigField(
             "String",
             "BASE_URL",
-            "\"https://ktor-backend-bupj.onrender.com/\""
+            "\"https://ktor-backend-eda7.onrender.com/\""
         )
         buildConfigField("String", "RAZORPAY_KEY", "\"rzp_test_123456\"")
         versionCode = 1

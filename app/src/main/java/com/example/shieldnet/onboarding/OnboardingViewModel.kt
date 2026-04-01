@@ -29,49 +29,11 @@ class OnboardingViewModel @Inject constructor(
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    // ✅ SEND OTP
     fun sendOtp(phone: String) {
         pendingPhone = phone
 
         _otpSent.value = true
     }
-//    fun sendOtp(phone: String) {
-//        pendingPhone = phone
-//
-//        viewModelScope.launch {
-//            _loading.value = true
-//            try {
-//                repo.sendOtp(phone)
-//                _otpSent.value = true
-//            } catch (e: Exception) {
-//                _error.value = "Failed to send OTP"
-//            } finally {
-//                _loading.value = false
-//            }
-//        }
-//    }
-
-//    fun verifyOtp(otp: String) {
-//        viewModelScope.launch {
-//            _loading.value = true
-//            try {
-//                val res = repo.verifyOtp(pendingPhone, otp)
-//
-//                repo.saveSession(
-//                    token = res.token,
-//                    workerId = res.workerId ?: "",
-//                    phone = pendingPhone
-//                )
-//
-//                _authResult.value = res
-//
-//            } catch (e: Exception) {
-//                _error.value = "Invalid OTP"
-//            } finally {
-//                _loading.value = false
-//            }
-//        }
-//    }
 
 
     fun verifyOtp(otp: String) {
