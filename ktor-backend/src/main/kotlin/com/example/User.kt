@@ -1,12 +1,18 @@
 package com.example
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class User(
-    val id: String,
     val name: String,
     val phone: String,
     val city: String,
-    val createdAt: Long = System.currentTimeMillis()
+    val platform: String,
+
+    @SerialName("weekly_avg")
+    val weeklyAvg: Int,
+
+    @SerialName("upi_handle")
+    val upiHandle: String
 )

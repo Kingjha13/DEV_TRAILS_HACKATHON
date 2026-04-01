@@ -83,18 +83,33 @@ fun Application.module() {
             }
         }
 
-        post("/register") {
+        post("/api/workers/register") {
 
             try {
-                val user = call.receive<User>()
-                Database.users.insertOne(user)
 
-                call.respond(mapOf("status" to "saved"))
+                val user = call.receive<User>()
+
+                println("🔥 REGISTER USER: $user")
+
+                val workerId = "worker_" + System.currentTimeMillis()
+
+                val response = mapOf(
+                    "id" to workerId,
+                    "name" to user.name,
+                    "phone" to user.phone,
+                    "risk_score" to 0.2,
+                    "token" to "demo_token"
+                )
+
+                call.respond(response)
 
             } catch (e: Exception) {
+
+                e.printStackTrace()
+
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    mapOf("error" to e.message)
+                    mapOf("error" to (e.message ?: "unknown error"))
                 )
             }
         }
