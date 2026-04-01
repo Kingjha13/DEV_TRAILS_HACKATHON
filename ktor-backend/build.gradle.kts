@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.24"
+    kotlin("plugin.serialization") version "1.9.24"
     application
 }
 
@@ -22,7 +23,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
     implementation("io.ktor:ktor-server-content-negotiation:2.3.7")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.litote.kmongo:kmongo-coroutine:4.11.0")
     implementation("org.mongodb:mongodb-driver-sync:4.11.1")
     implementation("ch.qos.logback:logback-classic:1.4.11")

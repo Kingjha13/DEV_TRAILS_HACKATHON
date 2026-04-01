@@ -28,7 +28,13 @@ fun main() {
 fun Application.module() {
 
     install(ContentNegotiation) {
-        json()
+        json(
+            kotlinx.serialization.json.Json {
+                ignoreUnknownKeys = true
+                prettyPrint = true
+                isLenient = true
+            }
+        )
     }
 
     val client = HttpClient(CIO)
@@ -83,13 +89,20 @@ fun Application.module() {
             }
         }
 
+        get("/test"){
+            val sample=FraudRequest(worker_id="123",
+                city="bihar",
+                event_type="rain",
+                policy_age_hours=1.0,
+                severity=0.8)
+            call.respond(sample)
+        }
+
         post("/api/workers/register") {
 
             try {
 
                 val user = call.receive<User>()
-
-                println("🔥 REGISTER USER: $user")
 
                 val workerId = "worker_" + System.currentTimeMillis()
 
@@ -97,19 +110,16 @@ fun Application.module() {
                     "id" to workerId,
                     "name" to user.name,
                     "phone" to user.phone,
-                    "risk_score" to 0.2,
                     "token" to "demo_token"
                 )
 
                 call.respond(response)
 
             } catch (e: Exception) {
-
                 e.printStackTrace()
-
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    mapOf("error" to (e.message ?: "unknown error"))
+                    mapOf("error" to e.message)
                 )
             }
         }
