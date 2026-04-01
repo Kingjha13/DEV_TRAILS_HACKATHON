@@ -11,7 +11,7 @@ import com.example.shieldnet.databinding.FragmentOtpBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class OtpFragment  : Fragment(R.layout.fragment_otp) {
+class OtpFragment : Fragment(R.layout.fragment_otp) {
 
     private var _binding: FragmentOtpBinding? = null
     private val binding get() = _binding!!
@@ -22,36 +22,43 @@ class OtpFragment  : Fragment(R.layout.fragment_otp) {
         _binding = FragmentOtpBinding.bind(view)
 
         binding.btnSendOtp.setOnClickListener {
-            val phone = binding.etPhone.text.toString().trim()
-            if (phone.length == 10) {
-                viewModel.sendOtp(phone)
-            } else {
-                binding.etPhone.error = "Enter valid 10-digit number"
+
+            val phone = binding.etPhone.text.toString()
+
+            if (phone.length != 10) {
+                Toast.makeText(requireContext(), "Enter valid number", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            viewModel.sendOtp(phone)
         }
 
         binding.btnVerifyOtp.setOnClickListener {
+
             val otp = binding.etOtp.text.toString().trim()
-            if (otp.length == 6) viewModel.verifyOtp(otp)
-            else binding.etOtp.error = "Enter 6-digit OTP"
+
+            if (otp.length == 6) {
+                viewModel.verifyOtp(otp)
+            } else {
+                binding.etOtp.error = "Enter 6-digit OTP"
+            }
         }
+
 
         viewModel.loading.observe(viewLifecycleOwner) { loading ->
             binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
-            binding.btnSendOtp.isEnabled = !loading
-            binding.btnVerifyOtp.isEnabled = !loading
         }
 
         viewModel.otpSent.observe(viewLifecycleOwner) { sent ->
             if (sent) {
                 binding.layoutOtpInput.visibility = View.VISIBLE
-                binding.btnSendOtp.text = getString(R.string.resend_otp)
-                Toast.makeText(requireContext(), "OTP sent to your number!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "OTP sent (use 123456)", Toast.LENGTH_SHORT).show()
             }
         }
 
         viewModel.authResult.observe(viewLifecycleOwner) { result ->
             result ?: return@observe
+
             if (result.isRegistered) {
                 findNavController().navigate(R.id.action_otp_to_dashboard)
             } else {
@@ -65,5 +72,8 @@ class OtpFragment  : Fragment(R.layout.fragment_otp) {
         }
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

@@ -22,6 +22,10 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentRiskScoreBinding.bind(view)
 
+        // 🔥 Start loading
+        binding.tvScoreNumber.text = "--"
+        binding.tvRiskLevel.text = "Analyzing..."
+
         viewModel.loadRiskScore()
 
         viewModel.loading.observe(viewLifecycleOwner) { loading ->
@@ -29,31 +33,54 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
         }
 
         viewModel.riskData.observe(viewLifecycleOwner) { risk: RiskResponse ->
+
             val scorePercent = (risk.riskScore * 100).toInt()
 
-            binding.tvScoreNumber.text = "$scorePercent"
+            // ✅ FIXED UI
+            binding.tvScoreNumber.text = "$scorePercent%"
             binding.tvRiskLevel.text = risk.riskLevel.uppercase()
+
+            // ✅ COLOR LOGIC
+            when (risk.riskLevel.lowercase()) {
+                "approve" -> binding.tvRiskLevel.setTextColor(requireContext().getColor(R.color.green))
+                "review" -> binding.tvRiskLevel.setTextColor(requireContext().getColor(R.color.orange))
+                "reject" -> binding.tvRiskLevel.setTextColor(requireContext().getColor(R.color.red))
+            }
 
             setupRadarChart(risk)
         }
 
         viewModel.error.observe(viewLifecycleOwner) {
-            it?.let { Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show() }
+            it?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+
+                // 🔥 fallback UI
+                binding.tvRiskLevel.text = "Error"
+                binding.tvScoreNumber.text = "--"
+            }
         }
     }
 
     private fun setupRadarChart(risk: RiskResponse) {
+
         val entries = listOf(
             RadarEntry(risk.factors.rainfallRisk * 5),
             RadarEntry(risk.factors.floodFreq * 5),
             RadarEntry(risk.factors.aqiRisk * 5),
-            RadarEntry(risk.factors.congestionIndex)
+            RadarEntry(risk.factors.congestionIndex * 5)
         )
 
-        val dataSet = RadarDataSet(entries, "Risk Factors")
+        val dataSet = RadarDataSet(entries, "Risk Factors").apply {
+            lineWidth = 2f
+            valueTextSize = 10f
+        }
 
         binding.radarChart.apply {
             data = RadarData(dataSet)
+
+            description.isEnabled = false
+            legend.isEnabled = false
+
             invalidate()
         }
     }

@@ -16,14 +16,20 @@ data class RegisterRequest(
     @SerializedName("upi_handle") val upiHandle: String
 )
 
-data class RiskRequest(
-    val city: String,
-    val platform: String,
-    @SerializedName("delivery_zone") val deliveryZone: String,
-    val lat: Double,
-    val lon: Double
-)
 
+
+data class RiskRequest(
+    val worker_id: String,
+    val city: String,
+    val event_type: String,
+    val policy_age_hours: Double,
+    val severity: Double
+)
+data class FraudApiResponse(
+    val fraud_score: Double,
+    val flags: List<String>,
+    val decision: String
+)
 data class PolicyCreateRequest(
     @SerializedName("worker_id") val workerId: String,
     @SerializedName("plan_tier") val planTier: String,

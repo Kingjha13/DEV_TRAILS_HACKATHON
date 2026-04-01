@@ -23,6 +23,10 @@
     <color name="status_pending">#D29922</color>
     <color name="status_rejected">#F85149</color>
 
+    <color name="green">#A4C639</color>
+    <color name="orange">#FF9800</color>
+    <color name="red">#FF5252</color>
+
     <!-- Risk badges -->
     <color name="badge_green">#1A4731</color>
     <color name="badge_amber">#3D2D00</color>

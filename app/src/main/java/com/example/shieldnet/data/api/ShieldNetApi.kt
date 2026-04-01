@@ -16,7 +16,9 @@ interface ShieldNetApi {
     suspend fun registerWorker(@Body request: RegisterRequest): Response<RegisterResponse>
 
     @POST("api/risk/score")
-    suspend fun getRiskScore(@Body request: RiskRequest): Response<RiskResponse>
+    suspend fun getRiskScore(
+        @Body request: RiskRequest
+    ): Response<FraudApiResponse>
 
     @GET("api/policies/{workerId}/active")
     suspend fun getActivePolicy(@Path("workerId") workerId: String): Response<PolicyResponse>

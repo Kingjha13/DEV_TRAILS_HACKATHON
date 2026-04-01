@@ -82,6 +82,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
         }
 
         binding.btnBuyPolicyCta.setOnClickListener {
+            binding.progressBar.visibility = View.VISIBLE
             findNavController().navigate(R.id.action_dashboard_to_risk_score)
         }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.shieldnet.data.model.RiskFactors
 import com.example.shieldnet.data.model.RiskRequest
 import com.example.shieldnet.data.model.RiskResponse
 import com.example.shieldnet.data.repository.ShieldNetRepository
@@ -32,17 +33,36 @@ class RiskViewModel @Inject constructor(
             try {
                 val city = repo.workerCity.first() ?: "Mumbai"
 
+                val workerId = repo.workerId.first()
+
+                if (workerId.isNullOrEmpty()) {
+                    throw Exception("User not logged in")
+                }
+
                 val req = RiskRequest(
+                    worker_id = workerId,
                     city = city,
-                    platform = "swiggy",
-                    deliveryZone = "central",
-                    lat = lat,
-                    lon = lon
+                    event_type = "rain",
+                    policy_age_hours = 1.0,
+                    severity = 0.8
                 )
 
                 val res = repo.getRiskScore(req)
 
-                _riskData.value = res
+                val mapped = RiskResponse(
+                    riskScore = res.fraud_score.toFloat(),
+                    riskLevel = res.decision,
+                    weeklyPremium = 49,
+                    coverageAmount = 5000,
+                    factors = RiskFactors(
+                        rainfallRisk = 0.8f,
+                        floodFreq = 0.6f,
+                        aqiRisk = 0.5f,
+                        congestionIndex = 0.7f
+                    )
+                )
+
+                _riskData.value = mapped
 
             } catch (e: Exception) {
                 _error.value = "Network error: ${e.message}"

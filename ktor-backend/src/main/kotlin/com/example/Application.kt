@@ -37,7 +37,17 @@ fun Application.module() {
         )
     }
 
-    val client = HttpClient(CIO)
+    val client = HttpClient(CIO) {
+        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+            json(
+                kotlinx.serialization.json.Json {
+                    ignoreUnknownKeys = true
+                    prettyPrint = true
+                    isLenient = true
+                }
+            )
+        }
+    }
 
     val fraudUrl = System.getenv("FRAUD_URL")
         ?: "https://shieldnet-fraud.onrender.com/score"
@@ -53,7 +63,6 @@ fun Application.module() {
             try {
 
                 val request = call.receive<FraudRequest>()
-                println("🔥 Incoming request: $request")
 
                 val jsonBody = """
         {
@@ -65,18 +74,12 @@ fun Application.module() {
         }
         """.trimIndent()
 
-                val response: HttpResponse = client.post(fraudUrl) {
+                val response: FraudResponse = client.post(fraudUrl) {
                     contentType(ContentType.Application.Json)
-                    setBody(jsonBody)   // ✅ FINAL FIX
-                }
+                    setBody(jsonBody)
+                }.body()
 
-                val responseText = response.bodyAsText()
-                println("🔥 RUST RESPONSE: $responseText")
-
-                call.respondText(
-                    text = responseText,
-                    contentType = ContentType.Application.Json
-                )
+                call.respond(response)
 
             } catch (e: Exception) {
 
@@ -89,6 +92,23 @@ fun Application.module() {
             }
         }
 
+        get("/test-risk") {
+
+            val request = FraudRequest(
+                worker_id = "123",
+                city = "Mumbai",
+                event_type = "rain",
+                policy_age_hours = 1.0,
+                severity = 0.8
+            )
+
+            val response: FraudResponse = client.post(fraudUrl) {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body()
+
+            call.respond(response)
+        }
         get("/test"){
             val sample=FraudRequest(worker_id="123",
                 city="bihar",

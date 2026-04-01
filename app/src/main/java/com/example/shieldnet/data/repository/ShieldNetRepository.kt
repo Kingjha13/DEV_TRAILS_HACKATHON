@@ -40,8 +40,9 @@ class ShieldNetRepository @Inject constructor(
         dataStore.edit { it.clear() }
     }
 
-    suspend fun sendOtp(phone: String) {
-        api.sendOtp(OtpRequest(phone))
+    suspend fun sendOtp(phone: String):
+            OtpSendResponse{
+        return api.sendOtp(OtpRequest(phone)).body()!!
     }
 
     suspend fun verifyOtp(phone: String, otp: String): OtpVerifyResponse {
@@ -49,11 +50,31 @@ class ShieldNetRepository @Inject constructor(
     }
 
     suspend fun registerWorker(req: RegisterRequest): RegisterResponse {
-        return api.registerWorker(req).body()!!
+        val res = api.registerWorker(req)
+
+        if (res.isSuccessful && res.body() != null) {
+            return res.body()!!
+        } else {
+            throw Exception("Register failed: ${res.code()}")
+        }
+    }
+    suspend fun saveUser(workerId: String, phone: String, city: String) {
+        dataStore.edit {
+            it[WORKER_ID_KEY] = workerId
+            it[WORKER_PHONE_KEY] = phone
+            it[WORKER_CITY_KEY] = city
+        }
     }
 
-    suspend fun getRiskScore(req: RiskRequest): RiskResponse {
-        return api.getRiskScore(req).body()!!
+    suspend fun getRiskScore(req: RiskRequest): FraudApiResponse {
+
+        val response = api.getRiskScore(req)
+
+        if (response.isSuccessful && response.body() != null) {
+            return response.body()!!
+        } else {
+            throw Exception("API Error: ${response.code()} - ${response.errorBody()?.string()}")
+        }
     }
 
     suspend fun getActivePolicy(workerId: String): PolicyResponse? {
