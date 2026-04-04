@@ -14,8 +14,8 @@ class OnboardingViewModel @Inject constructor(
 
     private var pendingPhone: String = ""
 
-    private val _otpSent = MutableLiveData<Boolean>()
-    val otpSent: LiveData<Boolean> = _otpSent
+    private val _otpSent = MutableLiveData<String?>()
+    val otpSent: LiveData<String?> = _otpSent
 
     private val _authResult = MutableLiveData<OtpVerifyResponse?>()
     val authResult: LiveData<OtpVerifyResponse?> = _authResult
@@ -23,73 +23,76 @@ class OnboardingViewModel @Inject constructor(
     private val _registerResult = MutableLiveData<RegisterResponse?>()
     val registerResult: LiveData<RegisterResponse?> = _registerResult
 
+    private val _policyResult = MutableLiveData<PolicyResponse?>()
+    val policyResult: LiveData<PolicyResponse?> = _policyResult
+
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> = _loading
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
+
     fun sendOtp(phone: String) {
         pendingPhone = phone
-
-        _otpSent.value = true
-    }
-
-
-    fun verifyOtp(otp: String) {
-
-        if (otp == "123456") {
-
-            val fakeResponse = OtpVerifyResponse(
-                token = "demo_token",
-                workerId = "worker_${System.currentTimeMillis()}",
-                isRegistered = false
-            )
-
-            viewModelScope.launch {
-                repo.saveSession(
-                    fakeResponse.token,
-                    fakeResponse.workerId ?: "",
-                    pendingPhone
-                )
-
-                _authResult.value = fakeResponse
-            }
-
-        } else {
-            _error.value = "Invalid OTP (use 123456)"
-        }
-    }
-
-    fun register(
-        name: String,
-        city: String,
-        platform: String,
-        weeklyAvg: Int,
-        upiHandle: String
-    ) {
         viewModelScope.launch {
             _loading.value = true
             try {
-
-                val req = RegisterRequest(
-                    name = name,
-                    phone = pendingPhone,
-                    city = city,
-                    platform = platform,
-                    weeklyAvg = weeklyAvg,
-                    upiHandle = upiHandle
-                )
-
-                val res = repo.registerWorker(req)
-
-                repo.saveSession(res.token, res.id, pendingPhone)
-                repo.saveCity(city)
-
-                _registerResult.value = res
-
+                val res = repo.sendOtp(phone)
+                _otpSent.value = res.message
             } catch (e: Exception) {
-                _error.value = "Registration failed: ${e.message}"
+                _error.value = e.message ?: "Failed to send OTP"
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    fun verifyOtp(otp: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val res = repo.verifyOtp(pendingPhone, otp)
+                repo.saveSession(res.token, res.workerId ?: "", pendingPhone)
+                _authResult.value = res
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Invalid OTP"
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+
+    fun register(name: String, city: String, platform: String, avg: Int, upi: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val res = repo.registerWorker(
+                    RegisterRequest(name, pendingPhone, city, platform, avg, upi)
+                )
+                repo.saveCity(city)
+                _registerResult.value = res
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Registration failed"
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+
+    fun confirmPayment(razorpayId: String, tier: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val id = repo.getSyncWorkerId() ?: throw Exception("Worker ID not found")
+                val res = repo.createPolicy(
+                    PolicyCreateRequest(id, tier, razorpayId, "ORD_${System.currentTimeMillis()}")
+                )
+                _policyResult.value = res
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Payment confirmation failed"
             } finally {
                 _loading.value = false
             }

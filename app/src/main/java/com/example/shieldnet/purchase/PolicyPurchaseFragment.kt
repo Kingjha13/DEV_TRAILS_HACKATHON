@@ -56,7 +56,7 @@ class PolicyPurchaseFragment : Fragment(R.layout.fragment_policy_purchase),
     private fun startPayment(amount: Int) {
         val checkout = Checkout()
 
-        checkout.setKeyID("rzp_test_123456")
+        checkout.setKeyID("rzp_test_SZSJph7kCs2F1R")
 
         val options = JSONObject().apply {
             put("name", "ShieldNet")

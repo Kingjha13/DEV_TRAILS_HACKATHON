@@ -37,11 +37,11 @@ class DashboardViewModel @Inject constructor(
 
                 val policy = repo.getActivePolicy(workerId)
                 val trigger = repo.getTriggerStatus(city)
-                val claims = repo.getClaims(workerId)
+                val claimsList = repo.getClaims(workerId)
 
                 _activePolicy.value = policy
                 _triggerStatus.value = trigger
-                _claims.value = claims
+                _claims.value = claimsList
 
             } catch (e: Exception) {
                 _error.value = "Failed to load dashboard: ${e.message}"
@@ -49,5 +49,8 @@ class DashboardViewModel @Inject constructor(
                 _loading.value = false
             }
         }
+    }
+    fun refreshAfterPayment() {
+        loadDashboard()
     }
 }

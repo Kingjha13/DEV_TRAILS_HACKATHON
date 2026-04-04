@@ -6,29 +6,36 @@ import retrofit2.http.*
 
 interface ShieldNetApi {
 
-    @POST("api/auth/send-otp")
-    suspend fun sendOtp(@Body request: OtpRequest): Response<OtpSendResponse>
+    @POST("auth/send-otp")
+    suspend fun sendOtp(@Body req: OtpRequest): Response<OtpSendResponse>
 
-    @POST("api/auth/verify-otp")
-    suspend fun verifyOtp(@Body request: OtpVerifyRequest): Response<OtpVerifyResponse>
+    @POST("auth/verify-otp")
+    suspend fun verifyOtp(@Body req: OtpVerifyRequest): Response<OtpVerifyResponse>
 
-    @POST("api/workers/register")
-    suspend fun registerWorker(@Body request: RegisterRequest): Response<RegisterResponse>
+    @POST("workers/register")
+    suspend fun registerWorker(@Body req: RegisterRequest): Response<RegisterResponse>
 
-    @POST("api/risk/score")
-    suspend fun getRiskScore(
-        @Body request: RiskRequest
-    ): Response<FraudApiResponse>
+    @POST("risk/analyze")
+    suspend fun getRiskScore(@Body req: RiskRequest): Response<FraudApiResponse>
 
-    @GET("api/policies/{workerId}/active")
-    suspend fun getActivePolicy(@Path("workerId") workerId: String): Response<PolicyResponse>
 
-    @POST("api/policies/create")
-    suspend fun createPolicy(@Body request: PolicyCreateRequest): Response<PolicyResponse>
+    @GET("policies/active")
+    suspend fun getActivePolicy(
+        @Query("worker_id") workerId: String
+    ): Response<PolicyResponse>
 
-    @GET("api/claims/{workerId}")
-    suspend fun getClaims(@Path("workerId") workerId: String): Response<List<ClaimResponse>>
+    @POST("policies/create")
+    suspend fun createPolicy(
+        @Body req: PolicyCreateRequest
+    ): Response<PolicyResponse>
 
-    @GET("api/triggers/status")
-    suspend fun getTriggerStatus(@Query("city") city: String): Response<TriggerStatusResponse>
+    @GET("claims/list")
+    suspend fun getClaims(
+        @Query("worker_id") workerId: String
+    ): Response<List<ClaimResponse>>
+
+    @GET("status/triggers")
+    suspend fun getTriggerStatus(
+        @Query("city") city: String
+    ): Response<TriggerStatusResponse>
 }

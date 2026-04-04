@@ -2,7 +2,6 @@ package com.example.shieldnet.data.model
 
 import com.google.gson.annotations.SerializedName
 
-
 data class OtpRequest(val phone: String)
 
 data class OtpVerifyRequest(val phone: String, val otp: String)
@@ -16,8 +15,6 @@ data class RegisterRequest(
     @SerializedName("upi_handle") val upiHandle: String
 )
 
-
-
 data class RiskRequest(
     val worker_id: String,
     val city: String,
@@ -25,18 +22,19 @@ data class RiskRequest(
     val policy_age_hours: Double,
     val severity: Double
 )
+
 data class FraudApiResponse(
     val fraud_score: Double,
     val flags: List<String>,
     val decision: String
 )
+
 data class PolicyCreateRequest(
     @SerializedName("worker_id") val workerId: String,
     @SerializedName("plan_tier") val planTier: String,
     @SerializedName("razorpay_payment_id") val razorpayPaymentId: String,
     @SerializedName("razorpay_order_id") val razorpayOrderId: String
 )
-
 
 data class OtpSendResponse(val message: String, val success: Boolean)
 

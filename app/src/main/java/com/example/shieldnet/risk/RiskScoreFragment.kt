@@ -24,23 +24,28 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentRiskScoreBinding.bind(view)
 
-        binding.progressLoading.postDelayed({
-            if (binding.progressLoading.visibility == View.VISIBLE) {
-                showFallbackUI()
+        view.postDelayed({
+            _binding?.let { safeBinding ->
+                if (safeBinding.progressLoading.visibility == View.VISIBLE) {
+                    showFallbackUI()
+                }
             }
         }, 4000)
 
         viewModel.loading.observe(viewLifecycleOwner) { loading ->
-            binding.progressLoading.visibility = if (loading) View.VISIBLE else View.GONE
-            binding.contentGroup.visibility    = if (loading) View.GONE else View.VISIBLE
+            _binding?.let { b ->
+                b.progressLoading.visibility = if (loading) View.VISIBLE else View.GONE
+                b.contentGroup.visibility    = if (loading) View.GONE else View.VISIBLE
+            }
         }
 
         viewModel.riskData.observe(viewLifecycleOwner) { risk ->
             risk ?: return@observe
+            val b = _binding ?: return@observe
 
             val score = (risk.fraud_score * 100).toInt().coerceIn(0, 100)
-            binding.tvScoreNumber.text = score.toString()
-            binding.progressRisk.progress = score
+            b.tvScoreNumber.text = score.toString()
+            b.progressRisk.progress = score
 
             val (level, premium, coverage, tier) = when {
                 score < 35 -> listOf("LOW RISK", "₹49", "₹15,000", "low")
@@ -48,16 +53,16 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
                 else       -> listOf("HIGH RISK", "₹149", "₹7,000", "high")
             }
 
-            val premiumInt = premium.replace("₹", "").toIntOrNull() ?: 99
-            val coverageInt = coverage.replace("₹", "").replace(",", "").toIntOrNull() ?: 10000
+            val premiumInt = premium.replace("₹", "").trim().toIntOrNull() ?: 99
+            val coverageInt = coverage.replace("₹", "").replace(",", "").trim().toIntOrNull() ?: 10000
 
-            binding.tvRiskLevel.text = level
-            binding.tvPremium.text   = "$premium / week"
-            binding.tvCoverage.text  = "Coverage up to $coverage"
+            b.tvRiskLevel.text = level
+            b.tvPremium.text   = "$premium / week"
+            b.tvCoverage.text  = "Coverage up to $coverage"
 
             setupRadarChart(risk.fraud_score.toFloat())
 
-            binding.btnBuyPolicy.setOnClickListener {
+            b.btnBuyPolicy.setOnClickListener {
                 val action = RiskScoreFragmentDirections
                     .actionRiskScoreToPurchase(premiumInt, coverageInt, tier as String)
                 findNavController().navigate(action)
@@ -73,18 +78,19 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
     }
 
     private fun showFallbackUI() {
-        binding.progressLoading.visibility = View.GONE
-        binding.contentGroup.visibility    = View.VISIBLE
+        val b = _binding ?: return
+        b.progressLoading.visibility = View.GONE
+        b.contentGroup.visibility    = View.VISIBLE
 
-        binding.tvScoreNumber.text   = "52"
-        binding.progressRisk.progress = 52
-        binding.tvRiskLevel.text     = "MEDIUM RISK"
-        binding.tvPremium.text       = "₹99 / week"
-        binding.tvCoverage.text      = "Coverage up to ₹10,000"
+        b.tvScoreNumber.text   = "52"
+        b.progressRisk.progress = 52
+        b.tvRiskLevel.text     = "MEDIUM RISK"
+        b.tvPremium.text       = "₹99 / week"
+        b.tvCoverage.text      = "Coverage up to ₹10,000"
 
         setupRadarChart(0.52f)
 
-        binding.btnBuyPolicy.setOnClickListener {
+        b.btnBuyPolicy.setOnClickListener {
             val action = RiskScoreFragmentDirections
                 .actionRiskScoreToPurchase(99, 10000, "medium")
             findNavController().navigate(action)
@@ -92,6 +98,7 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
     }
 
     private fun setupRadarChart(score: Float) {
+        val b = _binding ?: return
         try {
             val labels = listOf("Rainfall", "Flood", "AQI", "Traffic")
             val entries = listOf(
@@ -107,10 +114,9 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
                 setDrawFilled(true)
                 fillAlpha = 60
                 lineWidth = 2f
-                setDrawHighlightCircleEnabled(true)
             }
 
-            binding.radarChart.apply {
+            b.radarChart.apply {
                 data = RadarData(dataSet)
                 xAxis.valueFormatter = IndexAxisValueFormatter(labels)
                 xAxis.textColor = 0xFF8892A4.toInt()
@@ -118,12 +124,13 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
                 yAxis.setDrawLabels(false)
                 legend.isEnabled = false
                 description.isEnabled = false
-                setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 invalidate()
             }
-        } catch (e: Exception) {
-        }
+        } catch (e: Exception) { }
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

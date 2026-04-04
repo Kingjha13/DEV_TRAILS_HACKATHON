@@ -68,7 +68,9 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
 //    implementation("com.google.dagger:hilt-android:2.51")
 //    kapt("com.google.dagger:hilt-compiler:2.51")
-    implementation("com.google.dagger:hilt-android:2.56.1")     // ← was 2.51
+    implementation("com.google.dagger:hilt-android:2.56.1")
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)     // ← was 2.51
     kapt("com.google.dagger:hilt-compiler:2.56.1")              // ← was 2.51
     implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -79,7 +81,7 @@ dependencies {
 //    implementation("com.tomtom.sdk.maps:map-display:0.3.303")
 //    implementation("com.tomtom.sdk.location:location-android:0.3.303")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    implementation("com.razorpay:checkout:1.6.33")
+    implementation("com.razorpay:checkout:1.6.40")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")

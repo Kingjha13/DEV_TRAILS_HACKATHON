@@ -1,16 +1,14 @@
 package com.example.shieldnet.dashboard
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.example.shieldnet.R
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.shieldnet.ar.ArNavigationActivity
+import com.example.shieldnet.R
 import com.example.shieldnet.databinding.FragmentDashboardBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
@@ -27,37 +25,59 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentDashboardBinding.bind(view)
 
+        setupRecyclerView()
+        setupClickListeners()
+        setupObservers()
+    }
+
+    override fun onResume() {
+        super.onResume()
         viewModel.loadDashboard()
+    }
 
-        binding.progressBar.postDelayed({
-            if (binding.progressBar.visibility == View.VISIBLE) {
-                binding.progressBar.visibility = View.GONE
-                binding.scrollContent.visibility = View.VISIBLE
-            }
-        }, 3000)
+    private fun setupRecyclerView() {
+        val claimsAdapter = ClaimsAdapter()
+        binding.rvClaims.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = claimsAdapter
+        }
 
-        viewModel.loading.observe(viewLifecycleOwner) { loading ->
-            if (loading) {
-                binding.progressBar.visibility = View.VISIBLE
-                binding.scrollContent.visibility = View.GONE
-            } else {
-                binding.progressBar.visibility = View.GONE
-                binding.scrollContent.visibility = View.VISIBLE
-            }
+        viewModel.claims.observe(viewLifecycleOwner) { claims ->
+            claimsAdapter.submitList(claims)
+            binding.tvNoClaimsMsg.visibility = if (claims.isEmpty()) View.VISIBLE else View.GONE
+        }
+    }
+
+    private fun setupClickListeners() {
+        binding.btnArNav.setOnClickListener {
+            Toast.makeText(requireContext(), "AR Nav — Coming soon!", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnBuyPolicyCta.setOnClickListener {
+            findNavController().navigate(R.id.action_dashboard_to_risk_score)
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.loading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.scrollContent.visibility = if (isLoading) View.GONE else View.VISIBLE
         }
 
         viewModel.activePolicy.observe(viewLifecycleOwner) { policy ->
             if (policy != null) {
-                binding.cardPolicy.visibility      = View.VISIBLE
+                binding.cardPolicy.visibility = View.VISIBLE
                 binding.cardNoPolicyCta.visibility = View.GONE
-                binding.tvPolicyTier.text          = policy.planTier.uppercase() + " PLAN"
-                binding.tvPolicyCoverage.text      = "Covered up to ₹${policy.coverageInr}"
-                binding.tvPolicyExpiry.text        = "Valid until ${formatDate(policy.expiresAt)}"
-                binding.chipPolicyStatus.text      = policy.status.uppercase()
+
+                binding.tvPolicyTier.text = "${policy.planTier.uppercase()} PLAN"
+                binding.tvPolicyCoverage.text = "Covered up to ₹${policy.coverageInr}"
+                binding.tvPolicyExpiry.text = "Valid until ${formatDate(policy.expiresAt)}"
+
+                binding.chipPolicyStatus.text = policy.status.uppercase()
                 val chipColor = if (policy.status == "active") R.color.status_paid else R.color.status_pending
                 binding.chipPolicyStatus.setChipBackgroundColorResource(chipColor)
             } else {
-                binding.cardPolicy.visibility      = View.GONE
+                binding.cardPolicy.visibility = View.GONE
                 binding.cardNoPolicyCta.visibility = View.VISIBLE
             }
         }
@@ -67,7 +87,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
                 binding.cardTrigger.setCardBackgroundColor(
                     ContextCompat.getColor(requireContext(), R.color.trigger_safe))
                 binding.tvTriggerTitle.text = "All Clear ✓"
-                binding.tvTriggerDesc.text  = "No disruptions detected in your area"
+                binding.tvTriggerDesc.text = "No disruptions detected in your area"
                 binding.ivTriggerIcon.setImageResource(R.drawable.ic_shield_check)
             } else {
                 binding.cardTrigger.setCardBackgroundColor(
@@ -81,26 +101,8 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
             }
         }
 
-        val claimsAdapter = ClaimsAdapter()
-        binding.rvClaims.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvClaims.adapter = claimsAdapter
-
-        viewModel.claims.observe(viewLifecycleOwner) { claims ->
-            claimsAdapter.submitList(claims)
-            binding.tvNoClaimsMsg.visibility = if (claims.isEmpty()) View.VISIBLE else View.GONE
-        }
-
-        binding.btnArNav.setOnClickListener {
-            Toast.makeText(requireContext(), "AR Nav — Coming soon!", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnBuyPolicyCta.setOnClickListener {
-            findNavController().navigate(R.id.action_dashboard_to_risk_score)
-        }
-
         viewModel.error.observe(viewLifecycleOwner) { msg ->
-            msg ?: return@observe
-            Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
+            msg?.let { Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show() }
         }
     }
 
@@ -110,5 +112,8 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(date)
     } catch (e: Exception) { isoDate }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }
