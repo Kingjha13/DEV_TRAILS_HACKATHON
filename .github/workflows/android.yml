@@ -1,4 +1,4 @@
-name: Build ShieldNet APK 🚀
+name: Build & Release ShieldNet APK 🚀
 
 on:
   push:
@@ -28,8 +28,14 @@ jobs:
       - name: Build APK
         run: ./gradlew assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
+      - name: Rename APK
+        run: mv app/build/outputs/apk/debug/app-debug.apk ShieldNet.apk
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: ShieldNet-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          tag_name: v1.0
+          name: ShieldNet Release
+          files: ShieldNet.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
