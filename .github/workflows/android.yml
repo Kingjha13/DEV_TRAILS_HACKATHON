@@ -1,4 +1,4 @@
-name: Release APK 🚀
+name: Build APK (No Risk) 🚀
 
 on:
   push:
@@ -18,14 +18,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle Cache
-        uses: gradle/gradle-build-action@v2
-
-      - name: Grant Permission
-        run: chmod +x gradlew
+      - name: Install Gradle
+        run: |
+          sudo apt update
+          sudo apt install -y gradle
 
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle :app:assembleDebug
 
       - name: Rename APK
         run: mv app/build/outputs/apk/debug/app-debug.apk ShieldNet.apk
@@ -33,8 +32,8 @@ jobs:
       - name: Release APK
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: ShieldNet Build v1.0.${{ github.run_number }}
+          tag_name: v1.${{ github.run_number }}
+          name: ShieldNet Build
           files: ShieldNet.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
