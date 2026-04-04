@@ -1,39 +1,32 @@
-name: Build APK (No Risk) 🚀
+name: Build ShieldNet APK 🚀
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Java
+      - name: Setup JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Gradle
-        run: |
-          sudo apt update
-          sudo apt install -y gradle
+      - name: Give permission
+        run: chmod +x gradlew
 
       - name: Build APK
-        run: gradle :app:assembleDebug
+        run: ./gradlew :app:assembleDebug
 
-      - name: Rename APK
-        run: mv app/build/outputs/apk/debug/app-debug.apk ShieldNet.apk
-
-      - name: Release APK
-        uses: softprops/action-gh-release@v1
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: v1.${{ github.run_number }}
-          name: ShieldNet Build
-          files: ShieldNet.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: ShieldNet-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
