@@ -7,6 +7,8 @@ import com.example.shieldnet.data.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,55 +45,52 @@ class ShieldNetRepository @Inject constructor(
         dataStore.data.map { it[WORKER_ID_KEY] }.first()
 
 
-    suspend fun sendOtp(phone: String): OtpSendResponse {
-        val res = api.sendOtp(OtpRequest(phone))
-        return res.body() ?: throw Exception("Server error sending OTP")
+    suspend fun sendOtp(phone: String): OtpSendResponse = withContext(Dispatchers.IO) {
+        val res = api.sendOtp(OtpRequest(phone)).execute()
+        res.body() ?: throw Exception("Server error sending OTP")
     }
 
-    suspend fun verifyOtp(phone: String, otp: String): OtpVerifyResponse {
-        val res = api.verifyOtp(OtpVerifyRequest(phone, otp))
-        return res.body() ?: throw Exception("Invalid OTP")
+    suspend fun verifyOtp(phone: String, otp: String): OtpVerifyResponse = withContext(Dispatchers.IO) {
+        val res = api.verifyOtp(OtpVerifyRequest(phone, otp)).execute()
+        res.body() ?: throw Exception("Invalid OTP")
     }
 
-    suspend fun registerWorker(req: RegisterRequest): RegisterResponse {
-        val res = api.registerWorker(req)
-        if (res.isSuccessful) return res.body()!!
+    suspend fun registerWorker(req: RegisterRequest): RegisterResponse = withContext(Dispatchers.IO) {
+        val res = api.registerWorker(req).execute()
+        if (res.isSuccessful) return@withContext res.body()!!
         throw Exception("Registration failed: ${res.code()}")
     }
 
-
-    suspend fun getRiskScore(req: RiskRequest): FraudApiResponse {
-        val res = api.getRiskScore(req)
-        if (res.isSuccessful) return res.body()!!
+    suspend fun getRiskScore(req: RiskRequest): FraudApiResponse = withContext(Dispatchers.IO) {
+        val res = api.getRiskScore(req).execute()
+        if (res.isSuccessful) return@withContext res.body()!!
         throw Exception("Risk analysis failed: ${res.code()}")
     }
 
-
-    suspend fun createPolicy(req: PolicyCreateRequest): PolicyResponse {
-        val res = api.createPolicy(req)
-        if (res.isSuccessful) return res.body()!!
+    suspend fun createPolicy(req: PolicyCreateRequest): PolicyResponse = withContext(Dispatchers.IO) {
+        val res = api.createPolicy(req).execute()
+        if (res.isSuccessful) return@withContext res.body()!!
         throw Exception("Payment verification failed: ${res.code()}")
     }
 
-    suspend fun getActivePolicy(workerId: String): PolicyResponse? {
-        val res = api.getActivePolicy(workerId)
-        return when {
+    suspend fun getActivePolicy(workerId: String): PolicyResponse? = withContext(Dispatchers.IO) {
+        val res = api.getActivePolicy(workerId).execute()
+        when {
             res.isSuccessful  -> res.body()
             res.code() == 404 -> null
             else -> throw Exception("Failed to load policy: ${res.code()}")
         }
     }
 
-
-    suspend fun getClaims(workerId: String): List<ClaimResponse> {
-        val res = api.getClaims(workerId)
-        if (res.isSuccessful) return res.body() ?: emptyList()
+    suspend fun getClaims(workerId: String): List<ClaimResponse> = withContext(Dispatchers.IO) {
+        val res = api.getClaims(workerId).execute()
+        if (res.isSuccessful) return@withContext res.body() ?: emptyList()
         throw Exception("Failed to load claims: ${res.code()}")
     }
 
-    suspend fun getTriggerStatus(city: String): TriggerStatusResponse {
-        val res = api.getTriggerStatus(city)
-        if (res.isSuccessful) return res.body()!!
+    suspend fun getTriggerStatus(city: String): TriggerStatusResponse = withContext(Dispatchers.IO) {
+        val res = api.getTriggerStatus(city).execute()
+        if (res.isSuccessful) return@withContext res.body()!!
         throw Exception("Failed to load trigger status: ${res.code()}")
     }
 }

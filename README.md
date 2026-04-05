@@ -104,7 +104,7 @@ GitHub
 https://github.com/Kingjha13/DEV_TRAILS_HACKATHON
 
 Backend
-https://ktor-backend-bupj.onrender.com/
+https://ktor-backend-eda7.onrender.com/
 
 ---
 
