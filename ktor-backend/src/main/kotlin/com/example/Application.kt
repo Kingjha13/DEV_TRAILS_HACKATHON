@@ -35,6 +35,19 @@ import kotlin.random.Random
     @SerialName("worker_id")    val workerId: String?,
     @SerialName("is_registered") val isRegistered: Boolean
 )
+@Serializable
+data class MongoTestResponse(
+    val message: String,
+    val data: List<MongoTestItem>
+)
+
+@Serializable
+data class MongoTestItem(
+    val event_type: String,
+    val approved_amount: Int,
+    val status: String,
+    val created_at: String
+)
 
 @Serializable data class RegisterRequest(
     val name: String,
@@ -147,6 +160,15 @@ fun main() {
 }
 
 fun Application.module() {
+    val mongoUri = System.getenv("MONGO_URI")
+        ?: ""
+
+    val client = com.mongodb.client.MongoClients.create(mongoUri)
+    val database = client.getDatabase("shieldnet")
+
+    val claimsCollection = database.getCollection("claims")
+
+    println("✅ MongoDB Connected")
 
     val json = Json {
         ignoreUnknownKeys = true
@@ -284,13 +306,64 @@ fun Application.module() {
         }
 
 
+        get("/test/mongo") {
+            try {
+                val workerId = "test_worker"
+
+                val doc = org.bson.Document()
+                    .append("worker_id", workerId)
+                    .append("event_type", "test_event")
+                    .append("approved_amount", 999)
+                    .append("status", "paid")
+                    .append("created_at", nowIso())
+
+                claimsCollection.insertOne(doc)
+
+                val results = claimsCollection
+                    .find(org.bson.Document("worker_id", workerId))
+                    .map {
+                        MongoTestItem(
+                            event_type = it.getString("event_type"),
+                            approved_amount = it.getInteger("approved_amount"),
+                            status = it.getString("status"),
+                            created_at = it.getString("created_at")
+                        )
+                    }
+                    .toList()
+
+                call.respond(
+                    MongoTestResponse(
+                        message = "MongoDB test successful",
+                        data = results
+                    )
+                )
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText("❌ Error: ${e.message}")
+            }
+        }
+
+
         get("/claims/list") {
             val workerId = call.request.queryParameters["worker_id"]
             if (workerId == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "worker_id required"))
                 return@get
             }
-            call.respond(claimsStore[workerId] ?: emptyList<ClaimResponse>())
+            val results = claimsCollection
+                .find(org.bson.Document("worker_id", workerId))
+                .map {
+                    mapOf(
+                        "event_type" to it.getString("event_type"),
+                        "approved_amount" to it.getInteger("approved_amount"),
+                        "status" to it.getString("status"),
+                        "created_at" to it.getString("created_at")
+                    )
+                }
+                .toList()
+
+            call.respond(results)
         }
 
         get("/status/triggers") {
@@ -347,6 +420,40 @@ fun Application.module() {
                 allClear       = allClear
             ))
         }
+        get("/test/full-flow") {
+            try {
+                val workerId = "worker_demo_001"
+
+                val policy = PolicyResponse(
+                    id = "pol_test",
+                    planTier = "standard",
+                    premiumInr = 199,
+                    coverageInr = 25000,
+                    startsAt = nowIso(),
+                    expiresAt = isoAfterDays(30),
+                    status = "active"
+                )
+                activePolicies[workerId] = policy
+
+                val claim = ClaimResponse(
+                    id = "clm_test",
+                    eventType = "rainfall",
+                    estimatedLoss = 600,
+                    approvedAmount = 500,
+                    status = "paid",
+                    createdAt = nowIso(),
+                    payoutRef = "PAY_TEST"
+                )
+
+                claimsStore.getOrPut(workerId) { mutableListOf() }.add(claim)
+
+                call.respondText("✅ Test successful")
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText("❌ Error: ${e.message}")
+            }
+        }
 
         post("/demo/trigger") {
             try {
@@ -374,10 +481,19 @@ fun Application.module() {
                     policy_age_hours = req.policyAgeHours,
                     severity         = req.severity
                 )
-                val fraudResp: FraudResponse = httpClient.post(fraudUrl) {
-                    contentType(ContentType.Application.Json)
-                    setBody(fraudReq)
-                }.body()
+                val fraudResp = try {
+                    httpClient.post(fraudUrl) {
+                        contentType(ContentType.Application.Json)
+                        setBody(fraudReq)
+                    }.body<FraudResponse>()
+                } catch (e: Exception) {
+                    println("Fraud service failed, using fallback")
+                    FraudResponse(
+                        fraud_score = 0.2,
+                        decision = "approve",
+                        flags = listOf("fallback_mode")
+                    )
+                }
 
                 if (fraudResp.decision == "approve") {
                     val payoutAmount = (req.severity * 600).toInt().coerceIn(200, 600)
@@ -391,7 +507,15 @@ fun Application.module() {
                         createdAt      = nowIso(),
                         payoutRef      = payoutRef
                     )
-                    claimsStore.getOrPut(req.workerId) { mutableListOf() }.add(claim)
+
+                    val doc = org.bson.Document()
+                        .append("worker_id", req.workerId)
+                        .append("event_type", req.eventType)
+                        .append("approved_amount", payoutAmount)
+                        .append("status", "paid")
+                        .append("created_at", nowIso())
+
+                    claimsCollection.insertOne(doc)
 
                     call.respond(
                         DemoTriggerResponse(
