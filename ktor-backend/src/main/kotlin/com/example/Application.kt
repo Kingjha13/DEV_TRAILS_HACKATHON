@@ -84,6 +84,8 @@ import kotlin.random.Random
     val type: String,
     val severity: Float,
     val description: String,
+    val threshold: Float,
+    @SerialName("threshold_breached") val thresholdBreached: Boolean,
     @SerialName("detected_at") val detectedAt: String
 )
 
@@ -91,6 +93,24 @@ import kotlin.random.Random
     val city: String,
     @SerialName("active_triggers") val activeTriggers: List<ActiveTrigger>,
     @SerialName("all_clear")       val allClear: Boolean
+)
+
+@Serializable data class DemoTriggerRequest(
+    @SerialName("worker_id")        val workerId: String,
+    val city: String,
+    @SerialName("event_type")       val eventType: String,
+    @SerialName("policy_age_hours") val policyAgeHours: Double,
+    val severity: Double
+)
+
+@Serializable data class DemoTriggerResponse(
+    val triggered: Boolean,
+    @SerialName("fraud_score")    val fraudScore: Double,
+    val decision: String,
+    val flags: List<String>,
+    @SerialName("payout_inr")    val payoutInr: Int?,
+    @SerialName("payout_ref")    val payoutRef: String?,
+    val message: String
 )
 
 val otpStore = ConcurrentHashMap<String, String>()
@@ -274,13 +294,136 @@ fun Application.module() {
         }
 
         get("/status/triggers") {
-            val city = call.request.queryParameters["city"] ?: "Unknown"
+            val city = call.request.queryParameters["city"] ?: "Chennai"
+            val triggersByCity = mapOf(
+                "Chennai" to listOf(
+                    ActiveTrigger(
+                        type              = "rainfall",
+                        severity          = 0.82f,
+                        description       = "Heavy rainfall detected — index 8.2 / 10",
+                        threshold         = 0.75f,
+                        thresholdBreached = true,
+                        detectedAt        = nowIso()
+                    )
+                ),
+                "Mumbai" to listOf(
+                    ActiveTrigger(
+                        type              = "platform_outage",
+                        severity          = 0.91f,
+                        description       = "Swiggy platform degraded — uptime below SLA for 2.5h",
+                        threshold         = 0.80f,
+                        thresholdBreached = true,
+                        detectedAt        = nowIso()
+                    )
+                ),
+                "Delhi" to listOf(
+                    ActiveTrigger(
+                        type              = "heat_index",
+                        severity          = 0.78f,
+                        description       = "Extreme heat — 43°C sustained for 3h",
+                        threshold         = 0.75f,
+                        thresholdBreached = true,
+                        detectedAt        = nowIso()
+                    )
+                ),
+                "Bengaluru" to listOf(
+                    ActiveTrigger(
+                        type              = "traffic_congestion",
+                        severity          = 0.61f,
+                        description       = "Congestion index 61% — below payout threshold",
+                        threshold         = 0.75f,
+                        thresholdBreached = false,
+                        detectedAt        = nowIso()
+                    )
+                )
+            )
+
+            val activeTriggers = triggersByCity[city] ?: emptyList()
+            val allClear = activeTriggers.none { it.thresholdBreached }
 
             call.respond(TriggerStatusResponse(
                 city           = city,
-                activeTriggers = emptyList(),
-                allClear       = true
+                activeTriggers = activeTriggers,
+                allClear       = allClear
             ))
+        }
+
+        post("/demo/trigger") {
+            try {
+                val req = call.receive<DemoTriggerRequest>()
+
+                if (req.severity < 0.20) {
+                    call.respond(
+                        DemoTriggerResponse(
+                            triggered  = false,
+                            fraudScore = 0.0,
+                            decision   = "reject",
+                            flags      = listOf("Event severity ${req.severity} is below minimum claimable threshold (0.20)"),
+                            payoutInr  = null,
+                            payoutRef  = null,
+                            message    = "Event did not cross the parametric threshold. No payout triggered."
+                        )
+                    )
+                    return@post
+                }
+
+                val fraudReq = FraudRequest(
+                    worker_id        = req.workerId,
+                    city             = req.city,
+                    event_type       = req.eventType,
+                    policy_age_hours = req.policyAgeHours,
+                    severity         = req.severity
+                )
+                val fraudResp: FraudResponse = httpClient.post(fraudUrl) {
+                    contentType(ContentType.Application.Json)
+                    setBody(fraudReq)
+                }.body()
+
+                if (fraudResp.decision == "approve") {
+                    val payoutAmount = (req.severity * 600).toInt().coerceIn(200, 600)
+                    val payoutRef    = "PAY_${System.currentTimeMillis()}"
+                    val claim = ClaimResponse(
+                        id             = "clm_${System.currentTimeMillis()}",
+                        eventType      = req.eventType,
+                        estimatedLoss  = payoutAmount + 100,
+                        approvedAmount = payoutAmount,
+                        status         = "paid",
+                        createdAt      = nowIso(),
+                        payoutRef      = payoutRef
+                    )
+                    claimsStore.getOrPut(req.workerId) { mutableListOf() }.add(claim)
+
+                    call.respond(
+                        DemoTriggerResponse(
+                            triggered  = true,
+                            fraudScore = fraudResp.fraud_score,
+                            decision   = "approve",
+                            flags      = fraudResp.flags,
+                            payoutInr  = payoutAmount,
+                            payoutRef  = payoutRef,
+                            message    = "Parametric trigger approved. \u20b9$payoutAmount credited to ${req.workerId}. No claim was filed."
+                        )
+                    )
+                } else {
+                    call.respond(
+                        DemoTriggerResponse(
+                            triggered  = false,
+                            fraudScore = fraudResp.fraud_score,
+                            decision   = fraudResp.decision,
+                            flags      = fraudResp.flags,
+                            payoutInr  = null,
+                            payoutRef  = null,
+                            message    = "Trigger blocked by fraud engine. Decision: ${fraudResp.decision}."
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to (e.message ?: "Demo trigger failed"))
+                )
+            }
         }
     }
 }
