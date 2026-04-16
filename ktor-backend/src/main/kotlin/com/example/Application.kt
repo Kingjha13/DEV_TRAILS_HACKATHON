@@ -95,7 +95,7 @@ import com.mongodb.client.model.Sorts
 )
 
 object ShieldNetEngine {
-    private val uri = "MONGO_URI"
+    private val uri = System.getenv("MONGO_URI") ?: ""
     private val client = try { MongoClients.create(uri) } catch (e: Exception) { null }
     val db: MongoDatabase? = client?.getDatabase("shieldnet")
 
