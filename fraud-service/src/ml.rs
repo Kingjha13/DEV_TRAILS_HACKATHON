@@ -33,8 +33,12 @@ impl FraudModel {
 
         let input = DenseMatrix::from_2d_vec(&vec![features]);
 
-        let probs = self.model.predict_proba(&input).unwrap();
+        let result = self.model.predict(&input).unwrap();
 
-        probs.get(0, 1)
+        let base = if result[0] == 1 { 0.7 } else { 0.2 };
+
+        let adjustment = (features[1] * 0.2).min(0.2);
+
+        (base + adjustment).min(1.0)
     }
 }
