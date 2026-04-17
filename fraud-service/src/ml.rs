@@ -31,13 +31,15 @@ impl FraudModel {
 
     pub fn predict(&self, features: Vec<f64>) -> f64 {
 
+        let severity = features[1];
+
         let input = DenseMatrix::from_2d_vec(&vec![features]);
 
         let result = self.model.predict(&input).unwrap();
 
         let base = if result[0] == 1 { 0.7 } else { 0.2 };
 
-        let adjustment = (features[1] * 0.2).min(0.2);
+        let adjustment = (severity * 0.2).min(0.2);
 
         (base + adjustment).min(1.0)
     }
