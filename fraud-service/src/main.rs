@@ -1,7 +1,9 @@
-use actix_web::{web, App, HttpServer, HttpResponse, middleware};
+use actix_web::{web, App, HttpServer, HttpResponse};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
+use chrono::Utc;
+
 mod ml;
 use ml::FraudModel;
 
@@ -13,47 +15,46 @@ struct AppState {
 
 #[derive(Deserialize)]
 struct FraudRequest {
-    worker_id:         String,
-    city:              String,
-    event_type:        String,
-    policy_age_hours:  f64,
-    severity:          f64,
+    worker_id: String,
+    city: String,
+    event_type: String,
+    policy_age_hours: f64,
+    severity: f64,
 }
 
 #[derive(Serialize)]
 struct FraudResponse {
-    fraud_score:  f64,
-    flags:        Vec<String>,
-    decision:     String,
+    fraud_score: f64,
+    flags: Vec<String>,
+    decision: String,
 }
 
-fn score_fraud(req: &FraudRequest, state: &AppState) -> (f64, Vec<String>) {
-    let now = chrono::Utc::now().timestamp();
-    let mut score: f64 = 0.0;
-    let mut flags: Vec<String> = Vec::new();
+fn score_rules(req: &FraudRequest, state: &AppState) -> (f64, Vec<String>) {
+    let now = Utc::now().timestamp();
+    let mut score = 0.0;
+    let mut flags = Vec::new();
+
     if req.policy_age_hours < 2.0 {
         let penalty = (2.0 - req.policy_age_hours) / 2.0 * 0.5;
         score += penalty;
-        flags.push(format!(
-            "Policy only {:.1}h old when claim triggered (threshold: 2h)",
-            req.policy_age_hours
-        ));
+        flags.push(format!("Policy too new ({:.1}h)", req.policy_age_hours));
     }
 
     {
         let mut history = state.claim_history.lock().unwrap();
         let worker_claims = history.entry(req.worker_id.clone()).or_default();
 
-        let cutoff_30d = now - 30 * 24 * 3600;
-        worker_claims.retain(|&t| t > cutoff_30d);
+        let cutoff = now - 30 * 24 * 3600;
+        worker_claims.retain(|&t| t > cutoff);
 
-        let recent_count = worker_claims.len();
-        if recent_count >= 3 {
+        let count = worker_claims.len();
+
+        if count >= 3 {
             score += 0.4;
-            flags.push(format!("{} claims in last 30 days (threshold: 3)", recent_count));
-        } else if recent_count == 2 {
-            score += 0.15;
-            flags.push(format!("{} claims in last 30 days — monitoring", recent_count));
+            flags.push(format!("{} claims in 30 days", count));
+        } else if count == 2 {
+            score += 0.2;
+            flags.push("Multiple recent claims".to_string());
         }
 
         worker_claims.push(now);
@@ -63,22 +64,18 @@ fn score_fraud(req: &FraudRequest, state: &AppState) -> (f64, Vec<String>) {
         let mut city_map = state.city_claims.lock().unwrap();
         let city_claims = city_map.entry(req.city.clone()).or_default();
 
-        let cutoff_10min = now - 600;
-        city_claims.retain(|(_, t)| *t > cutoff_10min);
+        let cutoff = now - 600;
+        city_claims.retain(|(_, t)| *t > cutoff);
 
-        let unique_workers: std::collections::HashSet<&str> = city_claims
+        let unique: HashSet<&str> = city_claims
             .iter()
             .filter(|(wid, _)| wid != &req.worker_id)
             .map(|(wid, _)| wid.as_str())
             .collect();
 
-        if unique_workers.len() > 5 {
+        if unique.len() > 5 {
             score += 0.2;
-            flags.push(format!(
-                "{} workers in {} claimed in last 10 min — cluster detected",
-                unique_workers.len(),
-                req.city
-            ));
+            flags.push("Cluster activity detected".to_string());
         }
 
         city_claims.push((req.worker_id.clone(), now));
@@ -86,17 +83,17 @@ fn score_fraud(req: &FraudRequest, state: &AppState) -> (f64, Vec<String>) {
 
     if req.severity < 0.2 {
         score += 0.3;
-        flags.push(format!(
-            "Event severity {:.2} is below minimum claimable threshold (0.2)",
-            req.severity
-        ));
+        flags.push("Suspiciously low severity".to_string());
     }
 
     (score.min(1.0), flags)
 }
 
 async fn health() -> HttpResponse {
-    HttpResponse::Ok().json(serde_json::json!({ "status": "ok", "service": "shieldnet-fraud" }))
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": "ok",
+        "service": "shieldnet-fraud"
+    }))
 }
 
 async fn score_endpoint(
@@ -104,7 +101,7 @@ async fn score_endpoint(
     data: web::Data<AppState>,
 ) -> HttpResponse {
 
-    let (rule_score, flags) = score_fraud(&req, &data);
+    let (rule_score, mut flags) = score_rules(&req, &data);
 
     let claim_count = {
         let history = data.claim_history.lock().unwrap();
@@ -125,15 +122,22 @@ async fn score_endpoint(
 
     let ml_score = data.model.predict(features);
 
-    let final_score = (rule_score * 0.6) + (ml_score * 0.4);
+    let final_score = (rule_score * 0.7) + (ml_score * 0.3);
 
-    let decision = if final_score > 0.7 {
+    let decision = if final_score > 0.75 {
+        flags.push("High fraud probability".to_string());
         "reject"
-    } else if final_score > 0.4 {
+    } else if final_score > 0.45 {
+        flags.push("Needs manual review".to_string());
         "review"
     } else {
         "approve"
     };
+
+    println!(
+        "📊 FRAUD → rule: {:.2}, ml: {:.2}, final: {:.2}, decision: {}",
+        rule_score, ml_score, final_score, decision
+    );
 
     HttpResponse::Ok().json(FraudResponse {
         fraud_score: final_score,
@@ -144,24 +148,23 @@ async fn score_endpoint(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-    let addr = format!("0.0.0.0:{}", port);
+    let addr = "0.0.0.0:8080";
 
-    println!("ShieldNet Fraud Service running on {}", addr);
+    println!("🚀 Fraud Service running at {}", addr);
 
-   let state = web::Data::new(AppState {
-       claim_history: Mutex::new(HashMap::new()),
-       city_claims: Mutex::new(HashMap::new()),
-       model: FraudModel::new(),
-   });
+    let state = web::Data::new(AppState {
+        claim_history: Mutex::new(HashMap::new()),
+        city_claims: Mutex::new(HashMap::new()),
+        model: FraudModel::new(),
+    });
 
     HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
             .route("/health", web::get().to(health))
-            .route("/score",  web::post().to(score_endpoint))
+            .route("/score", web::post().to(score_endpoint))
     })
-    .bind(&addr)?
+    .bind(addr)?
     .run()
     .await
 }
