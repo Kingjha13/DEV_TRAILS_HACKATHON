@@ -25,12 +25,12 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
         _binding = FragmentRiskScoreBinding.bind(view)
 
         view.postDelayed({
-            _binding?.let { safeBinding ->
-                if (safeBinding.progressLoading.visibility == View.VISIBLE) {
-                    showFallbackUI()
+            _binding?.let { b ->
+                if (b.progressLoading.visibility == View.VISIBLE) {
+                    showFallbackUI(score = 52, reason = "timeout")
                 }
             }
-        }, 4000)
+        }, 5000)
 
         viewModel.loading.observe(viewLifecycleOwner) { loading ->
             _binding?.let { b ->
@@ -44,93 +44,94 @@ class RiskScoreFragment : Fragment(R.layout.fragment_risk_score) {
             val b = _binding ?: return@observe
 
             val score = (risk.fraud_score * 100).toInt().coerceIn(0, 100)
-            b.tvScoreNumber.text = score.toString()
-            b.progressRisk.progress = score
+            println("📊 [RISK FRAGMENT] API score=$score decision=${risk.decision}")
 
-            val (level, premium, coverage, tier) = when {
-                score < 35 -> listOf("LOW RISK", "₹49", "₹15,000", "low")
-                score < 65 -> listOf("MEDIUM RISK", "₹99", "₹10,000", "medium")
-                else       -> listOf("HIGH RISK", "₹149", "₹7,000", "high")
-            }
-
-            val premiumInt = premium.replace("₹", "").trim().toIntOrNull() ?: 99
-            val coverageInt = coverage.replace("₹", "").replace(",", "").trim().toIntOrNull() ?: 10000
-
-            b.tvRiskLevel.text = level
-            b.tvPremium.text   = "$premium / week"
-            b.tvCoverage.text  = "Coverage up to $coverage"
-
-            setupRadarChart(risk.fraud_score.toFloat())
-
-            b.btnBuyPolicy.setOnClickListener {
-                val action = RiskScoreFragmentDirections
-                    .actionRiskScoreToPurchase(premiumInt, coverageInt, tier as String)
-                findNavController().navigate(action)
-            }
+            renderScore(b, score)
         }
 
         viewModel.error.observe(viewLifecycleOwner) { msg ->
             msg ?: return@observe
-            showFallbackUI()
+            println("⚠️ [RISK FRAGMENT] Error: $msg — showing fallback")
+            showFallbackUI(score = 52, reason = msg)
         }
 
         viewModel.loadRiskScore()
     }
 
-    private fun showFallbackUI() {
-        val b = _binding ?: return
+    private fun renderScore(b: com.example.shieldnet.databinding.FragmentRiskScoreBinding, score: Int) {
         b.progressLoading.visibility = View.GONE
         b.contentGroup.visibility    = View.VISIBLE
 
-        b.tvScoreNumber.text   = "52"
-        b.progressRisk.progress = 52
-        b.tvRiskLevel.text     = "MEDIUM RISK"
-        b.tvPremium.text       = "₹99 / week"
-        b.tvCoverage.text      = "Coverage up to ₹10,000"
+        b.tvScoreNumber.text   = score.toString()
+        b.progressRisk.progress = score
 
-        setupRadarChart(0.52f)
+        val (level, premiumInr, coverageDisplay, tier) = when {
+            score < 35 -> RiskPlan("LOW RISK",    99,  "₹10,000", "basic")
+            score < 65 -> RiskPlan("MEDIUM RISK", 149, "₹25,000", "standard")
+            else       -> RiskPlan("HIGH RISK",   199, "₹50,000", "premium")
+        }
+
+        b.tvRiskLevel.text = level
+        b.tvPremium.text   = "₹$premiumInr / week"
+        b.tvCoverage.text  = "Coverage up to $coverageDisplay"
+
+        setupRadarChart(score / 100f)
 
         b.btnBuyPolicy.setOnClickListener {
+            val coverageInt = coverageDisplay.replace("₹", "").replace(",", "").trim().toIntOrNull() ?: 10000
             val action = RiskScoreFragmentDirections
-                .actionRiskScoreToPurchase(99, 10000, "medium")
+                .actionRiskScoreToPurchase(premiumInr, coverageInt, tier)
             findNavController().navigate(action)
         }
     }
 
-    private fun setupRadarChart(score: Float) {
+    private fun showFallbackUI(score: Int, reason: String) {
+        val b = _binding ?: return
+        println("ℹ️ [RISK FALLBACK] score=$score reason=$reason")
+        renderScore(b, score)
+    }
+
+    private fun setupRadarChart(normalizedScore: Float) {
         val b = _binding ?: return
         try {
-            val labels = listOf("Rainfall", "Flood", "AQI", "Traffic")
+            val labels  = listOf("Rainfall", "Flood", "AQI", "Traffic")
             val entries = listOf(
-                RadarEntry(score * 80f + 10f),
-                RadarEntry(score * 60f + 15f),
-                RadarEntry(score * 70f + 20f),
-                RadarEntry(score * 50f + 25f)
+                RadarEntry(normalizedScore * 80f + 10f),
+                RadarEntry(normalizedScore * 60f + 15f),
+                RadarEntry(normalizedScore * 70f + 20f),
+                RadarEntry(normalizedScore * 50f + 25f)
             )
-
             val dataSet = RadarDataSet(entries, "Risk Factors").apply {
-                color = 0xFF00E5CC.toInt()
+                color     = 0xFF00E5CC.toInt()
                 fillColor = 0xFF00E5CC.toInt()
                 setDrawFilled(true)
                 fillAlpha = 60
                 lineWidth = 2f
             }
-
             b.radarChart.apply {
                 data = RadarData(dataSet)
                 xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-                xAxis.textColor = 0xFF8892A4.toInt()
-                yAxis.textColor = 0xFF8892A4.toInt()
+                xAxis.textColor      = 0xFF8892A4.toInt()
+                yAxis.textColor      = 0xFF8892A4.toInt()
                 yAxis.setDrawLabels(false)
-                legend.isEnabled = false
+                legend.isEnabled      = false
                 description.isEnabled = false
                 invalidate()
             }
-        } catch (e: Exception) { }
+        } catch (e: Exception) {
+            println("⚠️ [RADAR CHART] Render error: ${e.message}")
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+    private data class RiskPlan(
+        val level: String,
+        val premiumInr: Int,
+        val coverageDisplay: String,
+        val tier: String
+    )
 }

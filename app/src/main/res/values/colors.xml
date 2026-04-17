@@ -1,34 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand -->
-    <color name="shieldnet_teal">#0F6E56</color>
-    <color name="shieldnet_teal_light">#1A9B78</color>
+    <!-- Premium Fintech Theme -->
+    <color name="bg_dark">#0A0E1A</color>
+    <color name="bg_card">#141929</color>
+    <color name="bg_card_secondary">#1E2436</color>
+    
+    <color name="brand_primary">#00E5CC</color>
+    <color name="brand_secondary">#6E45FF</color>
+    <color name="brand_gradient_start">#00E5CC</color>
+    <color name="brand_gradient_end">#005BE5</color>
+    <color name="card_bg">#1E1E2E</color>
+<!--    <color name="status_paid">#4CAF50</color>       &lt;!&ndash; Green &ndash;&gt;-->
+    <color name="status_approved">#2196F3</color>   <!-- Blue -->
+<!--    <color name="status_pending">#FFC107</color>    &lt;!&ndash; Yellow &ndash;&gt;-->
+    <color name="status_rejected">#F44336</color>   <!-- Red -->
+    
+    <color name="text_high">#F0F4FF</color>
+    <color name="text_mid">#8892A4</color>
+    <color name="text_low">#5A6478</color>
+    
+    <color name="status_paid">#00C853</color>
+    <color name="status_pending">#FFAB00</color>
+    <color name="status_alert">#FF3D00</color>
+    <color name="status_safe">#00E5CC</color>
+    
+    <!-- Payout UI -->
+    <color name="payout_gold">#FFD600</color>
+    <color name="payout_gold_soft">#2A2710</color>
+    
+    <!-- Trigger UI -->
+    <color name="trigger_bg">#1A1212</color>
+    <color name="trigger_accent">#FF5252</color>
 
-    <!-- Backgrounds -->
-    <color name="bg_dark">#0D1117</color>
-    <color name="card_bg">#161B22</color>
-
-    <!-- Text -->
-    <color name="text_primary">#E6EDF3</color>
-    <color name="text_secondary">#8B949E</color>
     <color name="white">#FFFFFF</color>
-
-    <!-- Trigger status -->
-    <color name="trigger_safe">#1A4731</color>
-    <color name="trigger_alert">#7D1A1A</color>
-
-    <!-- Claim status -->
-    <color name="status_paid">#3FB950</color>
-    <color name="status_approved">#58A6FF</color>
-    <color name="status_pending">#D29922</color>
-    <color name="status_rejected">#F85149</color>
-
-    <color name="green">#A4C639</color>
-    <color name="orange">#FF9800</color>
-    <color name="red">#FF5252</color>
-
-    <!-- Risk badges -->
-    <color name="badge_green">#1A4731</color>
-    <color name="badge_amber">#3D2D00</color>
-    <color name="badge_red">#4A1A1A</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
 </resources>

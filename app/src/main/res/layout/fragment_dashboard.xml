@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0E1A">
+    android:background="@color/bg_dark">
 
     <ProgressBar
         android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="center"
         android:visibility="gone"
-        android:indeterminateTint="#00E5CC"/>
+        android:indeterminateTint="@color/brand_primary"/>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible"
         android:scrollbars="none">
 
         <LinearLayout
@@ -25,86 +25,164 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- HEADER -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="20dp"
-                android:paddingTop="48dp"
-                android:paddingBottom="20dp">
+                android:paddingHorizontal="24dp"
+                android:paddingTop="54dp"
+                android:paddingBottom="24dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
+                    
+                    <View
+                        android:layout_width="40dp"
+                        android:layout_height="4dp"
+                        android:background="@color/brand_primary"
+                        android:layout_marginBottom="12dp"/>
+                        
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="ShieldNet"
+                            android:textSize="26sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_high"
+                            android:fontFamily="sans-serif-medium"/>
+                        <TextView
+                            android:id="@+id/tv_covered_badge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PROTECTED ✓"
+                            android:textSize="10sp"
+                            android:textColor="@color/bg_dark"
+                            android:textStyle="bold"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:background="@drawable/bg_badge_green"
+                            android:layout_marginStart="14dp"
+                            android:visibility="gone"/>
+                    </LinearLayout>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🛡 ShieldNet"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:textColor="#00E5CC"
-                        android:fontFamily="sans-serif-medium"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Your protection dashboard"
-                        android:textSize="13sp"
-                        android:textColor="#8892A4"/>
+                        android:text="Parametric Protection Engine"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_mid"
+                        android:alpha="0.8"/>
                 </LinearLayout>
 
-                <com.google.android.material.button.MaterialButton
+                <ImageButton
                     android:id="@+id/btn_ar_nav"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:text="AR Nav"
-                    android:textSize="12sp"
-                    android:textColor="#00E5CC"
-                    app:backgroundTint="#141929"
-                    app:cornerRadius="20dp"
-                    app:strokeColor="#00E5CC"
-                    app:strokeWidth="1dp"/>
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_search"
+                    android:background="@drawable/bg_badge_green"
+                    android:backgroundTint="@color/bg_card"
+                    android:padding="12dp"
+                    app:tint="@color/brand_primary"
+                    android:contentDescription="Search"/>
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="20dp">
+                android:paddingHorizontal="24dp">
 
+                <!-- EMPTY STATE / NO POLICY CARD -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/card_no_policy_cta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="24dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="26dp">
+
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:src="@drawable/ic_shield_check"
+                            app:tint="@color/text_low"
+                            android:layout_marginBottom="20dp"
+                            android:alpha="0.5"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Get protected in 30s"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_high"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="One tap automatic payouts for rainfall, outages, and extreme heat. Zero claims needed."
+                            android:textSize="14sp"
+                            android:textColor="@color/text_mid"
+                            android:lineSpacingExtra="4dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="24dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_buy_policy_cta"
+                            android:layout_width="match_parent"
+                            android:layout_height="58dp"
+                            android:text="Create Your Policy →"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/bg_dark"
+                            app:backgroundTint="@color/brand_primary"
+                            app:cornerRadius="16dp"
+                            app:rippleColor="@color/white"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- ACTIVE TRIGGER STATUS (ALERTS) -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/card_trigger"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="#0D3D2E"
-                    app:cardCornerRadius="18dp"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:padding="18dp"
+                        android:padding="22dp"
                         android:gravity="center_vertical">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            app:cardBackgroundColor="#00E5CC"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            android:layout_marginEnd="14dp">
-                            <ImageView
-                                android:id="@+id/iv_trigger_icon"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:src="@drawable/ic_shield_check"
-                                android:padding="10dp"
-                                app:tint="#0A0E1A" />
-                        </androidx.cardview.widget.CardView>
+                        <ImageView
+                            android:id="@+id/iv_trigger_icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:src="@drawable/ic_shield_check"
+                            android:padding="10dp"
+                            android:background="@drawable/bg_badge_green"
+                            android:backgroundTint="#1A4731"
+                            app:tint="@color/brand_primary"
+                            android:layout_marginEnd="18dp"/>
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -115,36 +193,37 @@
                                 android:id="@+id/tv_trigger_title"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="All Clear ✓"
+                                android:text="System Monitoring..."
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="#00E5CC"/>
+                                android:textColor="@color/text_high"/>
                             <TextView
                                 android:id="@+id/tv_trigger_desc"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="No disruptions detected in your area"
+                                android:text="Scanning for area disruptions"
                                 android:textSize="13sp"
-                                android:textColor="#8892A4"
-                                android:layout_marginTop="3dp"/>
+                                android:textColor="@color/text_mid"
+                                android:layout_marginTop="2dp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
+                <!-- ACTIVE POLICY DETAILS -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/card_policy"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="#00E5CC"
-                    app:cardCornerRadius="18dp"
-                    app:cardElevation="0dp"
-                    android:layout_marginBottom="16dp"
+                    app:cardElevation="10dp"
+                    app:cardCornerRadius="24dp"
+                    android:layout_marginBottom="24dp"
                     android:visibility="gone">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="20dp">
+                        android:background="@drawable/bg_premium_gradient"
+                        android:padding="24dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -156,20 +235,22 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="MEDIUM PLAN"
-                                android:textSize="13sp"
+                                android:text="TITANIUM PROTECTION"
+                                android:textSize="12sp"
                                 android:textStyle="bold"
-                                android:textColor="#1A4040"
+                                android:textColor="#0A0E1A"
                                 android:letterSpacing="0.1"/>
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chip_policy_status"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="ACTIVE"
-                                android:textSize="11sp"
-                                android:textColor="#0A0E1A"
+                                android:textSize="10sp"
+                                android:textColor="@color/white"
+                                android:textStyle="bold"
                                 app:chipBackgroundColor="#0A0E1A"
-                                app:chipMinHeight="28dp"/>
+                                app:chipMinHeight="26dp"
+                                app:chipCornerRadius="10dp"/>
                         </LinearLayout>
 
                         <TextView
@@ -177,118 +258,183 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="#0A0E1A"
-                            android:textSize="30sp"
+                            android:textSize="32sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-medium"
-                            android:layout_marginTop="8dp"/>
+                            android:layout_marginTop="12dp"
+                            tools:text="₹50,000"/>
+                        
+                        <View android:layout_width="match_parent" android:layout_height="1dp" 
+                            android:background="#20000000" android:layout_marginVertical="16dp"/>
+
                         <TextView
                             android:id="@+id/tv_policy_expiry"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="#1A4040"
+                            android:textColor="#30000000"
                             android:textSize="13sp"
-                            android:layout_marginTop="4dp"/>
+                            android:textStyle="bold"
+                            tools:text="VALID TILL 24 MAY 2026"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
+                <!-- RECENT PAYOUT HIGHLIGHT -->
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/card_no_policy_cta"
+                    android:id="@+id/card_payout_alert"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="#141929"
-                    app:cardCornerRadius="18dp"
+                    app:cardBackgroundColor="@color/payout_gold_soft"
+                    app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
-                    android:layout_marginBottom="24dp">
+                    android:layout_marginBottom="24dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="22dp"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💰"
+                            android:textSize="28sp"
+                            android:layout_marginEnd="18dp"/>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:id="@+id/tv_payout_amount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="₹1,250 Credited"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/payout_gold"/>
+                            <TextView
+                                android:id="@+id/tv_payout_ref"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Auto-payout sent to your UPI"
+                                android:textSize="13sp"
+                                android:textColor="@color/text_mid"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- HOW IT WORKS SECTION -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Intelligence"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_high"
+                    android:layout_marginBottom="16dp"/>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="32dp">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="20dp">
+                        
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="18dp">
+                            <TextView android:layout_width="32dp" android:layout_height="32dp" android:text="1"
+                                android:textColor="@color/brand_primary" android:textStyle="bold" android:gravity="center"
+                                android:background="@drawable/bg_badge_green" android:backgroundTint="#1A4731"/>
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                                android:text="We monitor real-time data from APIs" android:textColor="@color/text_high"
+                                android:layout_marginStart="14dp" android:textSize="14sp"/>
+                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp">
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="You're not covered"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                android:textColor="#F0F4FF"/>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⚠️"
-                                android:textSize="22sp"/>
+                            android:layout_marginBottom="18dp">
+                            <TextView android:layout_width="32dp" android:layout_height="32dp" android:text="2"
+                                android:textColor="@color/brand_primary" android:textStyle="bold" android:gravity="center"
+                                android:background="@drawable/bg_badge_green" android:backgroundTint="#1A4731"/>
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                                android:text="Auto-trigger if disaster threshold breached" android:textColor="@color/text_high"
+                                android:layout_marginStart="14dp" android:textSize="14sp"/>
                         </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="A weather event today means zero income. Get protected in under 2 minutes."
-                            android:textSize="13sp"
-                            android:textColor="#8892A4"
-                            android:lineSpacingExtra="3dp"
-                            android:layout_marginBottom="16dp"/>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_buy_policy_cta"
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="52dp"
-                            android:text="Get Covered Now →"
-                            android:textSize="15sp"
-                            android:textStyle="bold"
-                            android:textColor="#0A0E1A"
-                            app:backgroundTint="#00E5CC"
-                            app:cornerRadius="12dp"/>
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            <TextView android:layout_width="32dp" android:layout_height="32dp" android:text="3"
+                                android:textColor="@color/brand_primary" android:textStyle="bold" android:gravity="center"
+                                android:background="@drawable/bg_badge_green" android:backgroundTint="#1A4731"/>
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                                android:text="Direct bank payout — no claim forms needed" android:textColor="@color/text_high"
+                                android:layout_marginStart="14dp" android:textSize="14sp"/>
+                        </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
+                <!-- CLAIMS HISTORY -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="14dp">
+                    android:layout_marginBottom="16dp">
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Claims History"
+                        android:text="Recent Payouts"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#F0F4FF"/>
+                        android:textColor="@color/text_high"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Auto-processed"
-                        android:textSize="12sp"
-                        android:textColor="#8892A4"/>
+                        android:text="Automated"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_low"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.1"/>
                 </LinearLayout>
 
                 <TextView
                     android:id="@+id/tv_no_claims_msg"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No claims yet — stay safe out there! 🙌"
-                    android:textColor="#8892A4"
+                    android:text="No payout events recorded yet."
+                    android:textColor="@color/text_low"
                     android:textSize="14sp"
                     android:visibility="gone"
                     android:gravity="center"
-                    android:paddingVertical="24dp"/>
+                    android:paddingVertical="40dp"/>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_claims"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
-                    android:layout_marginBottom="24dp"/>
+                    android:layout_marginBottom="40dp"
+                    tools:listitem="@layout/item_claim"/>
 
             </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 </FrameLayout>

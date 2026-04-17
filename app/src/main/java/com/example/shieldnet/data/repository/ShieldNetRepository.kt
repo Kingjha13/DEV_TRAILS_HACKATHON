@@ -23,6 +23,8 @@ class ShieldNetRepository @Inject constructor(
         val WORKER_ID_KEY    = stringPreferencesKey("worker_id")
         val WORKER_PHONE_KEY = stringPreferencesKey("worker_phone")
         val WORKER_CITY_KEY  = stringPreferencesKey("worker_city")
+        val PENDING_POLICY   = stringPreferencesKey("pending_policy")
+        val LOCAL_CLAIMS = stringPreferencesKey("local_claims")
     }
 
     val workerId:    Flow<String?> = dataStore.data.map { it[WORKER_ID_KEY] }
@@ -41,10 +43,40 @@ class ShieldNetRepository @Inject constructor(
         dataStore.edit { it[WORKER_CITY_KEY] = city }
     }
 
+    suspend fun saveLocalClaim(claim: String) {
+        dataStore.edit {
+            val existing = it[LOCAL_CLAIMS] ?: ""
+            it[LOCAL_CLAIMS] = existing + "||" + claim
+        }
+    }
+    suspend fun getLocalClaims(): List<LocalClaim> {
+        val data = dataStore.data.first()[LOCAL_CLAIMS] ?: ""
+
+        return data.split("||")
+            .filter { it.isNotEmpty() }
+            .map {
+                val parts = it.split("|")
+                LocalClaim(
+                    eventType = parts[0],
+                    amount = parts[1].toInt(),
+                    status = parts[2],
+                    date = parts[3]
+                )
+            }
+    }
     suspend fun getSyncWorkerId(): String? =
         dataStore.data.map { it[WORKER_ID_KEY] }.first()
 
+    suspend fun savePendingPolicy(tier: String) {
+        dataStore.edit { it[PENDING_POLICY] = tier }
+    }
 
+    suspend fun getPendingPolicy(): String? =
+        dataStore.data.map { it[PENDING_POLICY] }.first()
+
+    suspend fun clearPendingPolicy() {
+        dataStore.edit { it.remove(PENDING_POLICY) }
+    }
     suspend fun sendOtp(phone: String): OtpSendResponse = withContext(Dispatchers.IO) {
         val res = api.sendOtp(OtpRequest(phone)).execute()
         res.body() ?: throw Exception("Server error sending OTP")

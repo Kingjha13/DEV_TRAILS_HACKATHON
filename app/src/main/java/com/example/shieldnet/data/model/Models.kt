@@ -15,6 +15,12 @@ data class RegisterRequest(
     @SerializedName("upi_handle") val upiHandle: String
 )
 
+data class LocalClaim(
+    val eventType: String,
+    val amount: Int,
+    val status: String,
+    val date: String
+)
 data class RiskRequest(
     val worker_id: String,
     val city: String,
@@ -97,7 +103,27 @@ data class ActiveTrigger(
     val type: String,
     val severity: Float,
     val description: String,
+    val threshold: Float,
+    @SerializedName("threshold_breached") val thresholdBreached: Boolean,
     @SerializedName("detected_at") val detectedAt: String
+)
+
+data class DemoTriggerRequest(
+    @SerializedName("worker_id")        val workerId: String,
+    val city: String,
+    @SerializedName("event_type")       val eventType: String,
+    @SerializedName("policy_age_hours") val policyAgeHours: Double,
+    val severity: Double
+)
+
+data class DemoTriggerResponse(
+    val triggered: Boolean,
+    @SerializedName("fraud_score")  val fraudScore: Double,
+    val decision: String,
+    val flags: List<String>,
+    @SerializedName("payout_inr")   val payoutInr: Int?,
+    @SerializedName("payout_ref")   val payoutRef: String?,
+    val message: String
 )
 
 data class ApiError(val message: String, val code: Int = 0)

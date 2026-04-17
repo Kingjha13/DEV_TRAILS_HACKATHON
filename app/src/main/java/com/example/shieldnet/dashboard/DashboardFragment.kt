@@ -21,10 +21,11 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     private val binding get() = _binding!!
     private val viewModel: DashboardViewModel by viewModels()
 
+    private val claimsAdapter = ClaimsAdapter()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentDashboardBinding.bind(view)
-
         setupRecyclerView()
         setupClickListeners()
         setupObservers()
@@ -36,69 +37,109 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     }
 
     private fun setupRecyclerView() {
-        val claimsAdapter = ClaimsAdapter()
         binding.rvClaims.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = claimsAdapter
-        }
-
-        viewModel.claims.observe(viewLifecycleOwner) { claims ->
-            claimsAdapter.submitList(claims)
-            binding.tvNoClaimsMsg.visibility = if (claims.isEmpty()) View.VISIBLE else View.GONE
+            adapter        = claimsAdapter
+            isNestedScrollingEnabled = false
         }
     }
 
     private fun setupClickListeners() {
         binding.btnArNav.setOnClickListener {
-            Toast.makeText(requireContext(), "AR Nav — Coming soon!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "AR Intelligence — Scanning area...", Toast.LENGTH_SHORT).show()
         }
-
         binding.btnBuyPolicyCta.setOnClickListener {
             findNavController().navigate(R.id.action_dashboard_to_risk_score)
         }
     }
 
     private fun setupObservers() {
+
         viewModel.loading.observe(viewLifecycleOwner) { isLoading ->
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            binding.scrollContent.visibility = if (isLoading) View.GONE else View.VISIBLE
+            if (isLoading && binding.tvTriggerTitle.text.toString() == "System Monitoring...") {
+                binding.scrollContent.visibility = View.GONE
+            } else if (!isLoading) {
+                binding.scrollContent.visibility = View.VISIBLE
+            }
         }
 
         viewModel.activePolicy.observe(viewLifecycleOwner) { policy ->
             if (policy != null) {
-                binding.cardPolicy.visibility = View.VISIBLE
+                if (binding.cardPolicy.visibility == View.GONE) {
+                    binding.cardPolicy.alpha = 0f
+                    binding.cardPolicy.visibility = View.VISIBLE
+                    binding.cardPolicy.animate().alpha(1f).setDuration(600).start()
+                }
                 binding.cardNoPolicyCta.visibility = View.GONE
+                binding.tvCoveredBadge.visibility  = View.VISIBLE
 
-                binding.tvPolicyTier.text = "${policy.planTier.uppercase()} PLAN"
-                binding.tvPolicyCoverage.text = "Covered up to ₹${policy.coverageInr}"
-                binding.tvPolicyExpiry.text = "Valid until ${formatDate(policy.expiresAt)}"
-
-                binding.chipPolicyStatus.text = policy.status.uppercase()
-                val chipColor = if (policy.status == "active") R.color.status_paid else R.color.status_pending
-                binding.chipPolicyStatus.setChipBackgroundColorResource(chipColor)
+                binding.tvPolicyTier.text     = "${policy.planTier.uppercase(Locale.ROOT)} PROTECTION"
+                binding.tvPolicyCoverage.text = "₹${policy.coverageInr}"
+                binding.tvPolicyExpiry.text   = "VALID UNTIL ${formatDate(policy.expiresAt).uppercase(Locale.ROOT)}"
+                binding.chipPolicyStatus.text = policy.status.uppercase(Locale.ROOT)
             } else {
-                binding.cardPolicy.visibility = View.GONE
+                binding.cardPolicy.visibility      = View.GONE
                 binding.cardNoPolicyCta.visibility = View.VISIBLE
+                binding.tvCoveredBadge.visibility  = View.GONE
             }
         }
 
         viewModel.triggerStatus.observe(viewLifecycleOwner) { status ->
-            if (status.allClear) {
+            if (status.allClear || status.activeTriggers.isEmpty()) {
                 binding.cardTrigger.setCardBackgroundColor(
-                    ContextCompat.getColor(requireContext(), R.color.trigger_safe))
-                binding.tvTriggerTitle.text = "All Clear ✓"
-                binding.tvTriggerDesc.text = "No disruptions detected in your area"
+                    ContextCompat.getColor(requireContext(), R.color.bg_card))
+                binding.tvTriggerTitle.text = "Shield Active ✓"
+                binding.tvTriggerTitle.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.brand_primary))
+                binding.tvTriggerDesc.text = "Monitoring ${status.city} for disruptions..."
                 binding.ivTriggerIcon.setImageResource(R.drawable.ic_shield_check)
+                binding.ivTriggerIcon.backgroundTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.bg_dark)
+                binding.ivTriggerIcon.imageTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.brand_primary)
             } else {
                 binding.cardTrigger.setCardBackgroundColor(
-                    ContextCompat.getColor(requireContext(), R.color.trigger_alert))
-                binding.tvTriggerTitle.text = "⚠ Disruption Detected!"
-                val types = status.activeTriggers.joinToString(" • ") {
-                    it.type.replace("_", " ").replaceFirstChar { c -> c.uppercase() }
-                }
-                binding.tvTriggerDesc.text = "$types — auto-processing claim"
+                    ContextCompat.getColor(requireContext(), R.color.trigger_bg))
+                val trigger     = status.activeTriggers.firstOrNull { it.thresholdBreached }
+                    ?: status.activeTriggers.first()
+                val eventName   = trigger.type.replace("_", " ")
+                    .replaceFirstChar { c -> c.uppercase() }
+                val severityPct = (trigger.severity * 100).toInt()
+
+                binding.tvTriggerTitle.text = "⚡ $eventName Detected"
+                binding.tvTriggerTitle.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.trigger_accent))
+                binding.tvTriggerDesc.text  = "Severity $severityPct% — Automatic payout triggered"
                 binding.ivTriggerIcon.setImageResource(R.drawable.ic_alert)
+                binding.ivTriggerIcon.backgroundTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.trigger_accent)
+                binding.ivTriggerIcon.imageTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.white)
             }
+        }
+
+        viewModel.claims.observe(viewLifecycleOwner) { claims ->
+            claimsAdapter.submitList(claims.toList())
+
+            binding.tvNoClaimsMsg.visibility =
+                if (claims.isEmpty()) View.VISIBLE else View.GONE
+
+            val latestPaid = claims.firstOrNull { it.status == "paid" }
+            if (latestPaid != null) {
+                binding.cardPayoutAlert.visibility = View.VISIBLE
+                binding.tvPayoutAmount.text = "₹${latestPaid.approvedAmount} Credited"
+                binding.tvPayoutRef.text    = "Auto-payout: ${latestPaid.payoutRef}"
+
+                binding.cardPayoutAlert.alpha       = 0f
+                binding.cardPayoutAlert.translationY = 50f
+                binding.cardPayoutAlert.animate()
+                    .alpha(1f).translationY(0f).setDuration(600).start()
+            } else {
+                binding.cardPayoutAlert.visibility = View.GONE
+            }
+
+            println("📱 [DASHBOARD UI] Rendering ${claims.size} claim(s) in RecyclerView")
         }
 
         viewModel.error.observe(viewLifecycleOwner) { msg ->
@@ -107,7 +148,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     }
 
     private fun formatDate(isoDate: String): String = try {
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        val sdf  = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         val date = sdf.parse(isoDate) ?: return isoDate
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(date)
     } catch (e: Exception) { isoDate }

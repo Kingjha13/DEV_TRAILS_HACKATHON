@@ -53,7 +53,12 @@ class OnboardingViewModel @Inject constructor(
             _loading.value = true
             try {
                 val res = repo.verifyOtp(pendingPhone, otp)
-                repo.saveSession(res.token, res.workerId ?: "", pendingPhone)
+
+                if (!res.workerId.isNullOrEmpty()) {
+                    repo.saveSession(res.token, res.workerId, pendingPhone)
+                    println("✅ OTP SAVED workerId = ${res.workerId}")
+                }
+
                 _authResult.value = res
             } catch (e: Exception) {
                 _error.value = e.message ?: "Invalid OTP"
@@ -71,6 +76,8 @@ class OnboardingViewModel @Inject constructor(
                 val res = repo.registerWorker(
                     RegisterRequest(name, pendingPhone, city, platform, avg, upi)
                 )
+                repo.saveSession(res.token, res.id, pendingPhone)
+                println("✅ REGISTER SAVED workerId = ${res.id}")
                 repo.saveCity(city)
                 _registerResult.value = res
             } catch (e: Exception) {
